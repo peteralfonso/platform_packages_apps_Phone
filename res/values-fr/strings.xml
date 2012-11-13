@@ -395,6 +395,7 @@
     <string name="card_title_hanging_up" msgid="3999101620995182450">"Fin de l\'appel.."</string>
     <string name="card_title_in_call" msgid="6346543933068225205">"Appel en cours"</string>
     <string name="card_title_my_phone_number" msgid="112428362494434191">"Mon numéro est le <xliff:g id="MY_PHONE_NUMBER">%s</xliff:g>"</string>
+    <string name="notification_dialing" msgid="2107666444937350731">"Numérotation en cours…"</string>
     <string name="notification_missedCallTitle" msgid="7554385905572364535">"Appel manqué"</string>
     <string name="notification_missedCallsTitle" msgid="1361677948941502522">"Appels manqués"</string>
     <string name="notification_missedCallsMsg" msgid="4575787816055205600">"<xliff:g id="NUM_MISSED_CALLS">%s</xliff:g> appels manqués"</string>
@@ -618,7 +619,7 @@
     <item msgid="1458182414036878616">"Jamais"</item>
   </string-array>
     <string name="ringtone_title" msgid="6374978286202084684">"Sonnerie du téléphone"</string>
-    <string name="vibrate_on_ring_title" msgid="9197564612065258960">"Mode Vibreur lorsque le téléphone sonne"</string>
+    <string name="vibrate_on_ring_title" msgid="9197564612065258960">"Mode Vibreur lorsque le tél. sonne"</string>
     <string name="dtmf_tone_enable_title" msgid="827601042915852989">"Numérotation sonore"</string>
     <string name="preference_category_ringtone" msgid="9007490591910078324">"Sonnerie"</string>
 </resources>

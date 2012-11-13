@@ -39,6 +39,7 @@ import android.os.AsyncResult;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.UserHandle;
 import android.os.Vibrator;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
@@ -60,6 +61,7 @@ import android.widget.ListAdapter;
 import com.android.internal.telephony.CallForwardInfo;
 import com.android.internal.telephony.CommandsInterface;
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.cdma.TtyIntent;
 import com.android.phone.sip.SipSharedPreferences;
 
@@ -94,7 +96,7 @@ public class CallFeaturesSetting extends PreferenceActivity
         EditPhoneNumberPreference.OnDialogClosedListener,
         EditPhoneNumberPreference.GetDefaultNumberListener{
     private static final String LOG_TAG = "CallFeaturesSetting";
-    private static final boolean DBG = (PhoneApp.DBG_LEVEL >= 2);
+    private static final boolean DBG = (PhoneGlobals.DBG_LEVEL >= 2);
 
     /**
      * Intent action to bring up Voicemail Provider settings.
@@ -473,8 +475,8 @@ public class CallFeaturesSetting extends PreferenceActivity
         } else if (preference == mButtonTTY) {
             return true;
         } else if (preference == mButtonAutoRetry) {
-            android.provider.Settings.System.putInt(mPhone.getContext().getContentResolver(),
-                    android.provider.Settings.System.CALL_AUTO_RETRY,
+            android.provider.Settings.Global.putInt(mPhone.getContext().getContentResolver(),
+                    android.provider.Settings.Global.CALL_AUTO_RETRY,
                     mButtonAutoRetry.isChecked() ? 1 : 0);
             return true;
         } else if (preference == mButtonHAC) {
@@ -876,7 +878,7 @@ public class CallFeaturesSetting extends PreferenceActivity
                 + " settings");
 
         // No fwd settings on CDMA
-        if (mPhone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+        if (mPhone.getPhoneType() == PhoneConstants.PHONE_TYPE_CDMA) {
             if (DBG) log("ignoring forwarding setting since this is CDMA phone");
             mNewFwdSettings = FWD_SETTINGS_DONT_TOUCH;
         }
@@ -1481,7 +1483,7 @@ public class CallFeaturesSetting extends PreferenceActivity
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         if (DBG) log("onCreate(). Intent: " + getIntent());
-        mPhone = PhoneApp.getPhone();
+        mPhone = PhoneGlobals.getPhone();
 
         addPreferencesFromResource(R.xml.call_feature_setting);
 
@@ -1575,14 +1577,14 @@ public class CallFeaturesSetting extends PreferenceActivity
                 prefSet.removePreference(options);
 
             int phoneType = mPhone.getPhoneType();
-            if (phoneType == Phone.PHONE_TYPE_CDMA) {
+            if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
                 Preference fdnButton = prefSet.findPreference(BUTTON_FDN_KEY);
                 if (fdnButton != null)
                     prefSet.removePreference(fdnButton);
                 if (!getResources().getBoolean(R.bool.config_voice_privacy_disable)) {
                     addPreferencesFromResource(R.xml.cdma_call_privacy);
                 }
-            } else if (phoneType == Phone.PHONE_TYPE_GSM) {
+            } else if (phoneType == PhoneConstants.PHONE_TYPE_GSM) {
                 addPreferencesFromResource(R.xml.gsm_umts_call_options);
             } else {
                 throw new IllegalStateException("Unexpected phone type: " + phoneType);
@@ -1724,8 +1726,8 @@ public class CallFeaturesSetting extends PreferenceActivity
         }
 
         if (mButtonAutoRetry != null) {
-            int autoretry = Settings.System.getInt(getContentResolver(),
-                    Settings.System.CALL_AUTO_RETRY, 0);
+            int autoretry = Settings.Global.getInt(getContentResolver(),
+                    Settings.Global.CALL_AUTO_RETRY, 0);
             mButtonAutoRetry.setChecked(autoretry != 0);
         }
 
@@ -1798,7 +1800,7 @@ public class CallFeaturesSetting extends PreferenceActivity
             updatePreferredTtyModeSummary(buttonTtyMode);
             Intent ttyModeChanged = new Intent(TtyIntent.TTY_PREFERRED_MODE_CHANGE_ACTION);
             ttyModeChanged.putExtra(TtyIntent.TTY_PREFFERED_MODE, buttonTtyMode);
-            sendBroadcast(ttyModeChanged);
+            sendBroadcastAsUser(ttyModeChanged, UserHandle.ALL);
         }
     }
 

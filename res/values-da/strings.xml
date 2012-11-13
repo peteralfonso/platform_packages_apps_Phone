@@ -389,7 +389,7 @@
     <string name="label_puk2_code" msgid="302845876240219560">"Indtast PUK2-kode"</string>
     <string name="fdn_enable_puk2_requested" msgid="4262894949634885773">"Forkert adgangskode. Skift PIN2-kode, og prøv igen."</string>
     <string name="puk2_requested" msgid="8909278021238716877">"Adgangskoden er forkert. SIM-kortet er låst. PUK2-kode er påkrævet."</string>
-    <string name="doneButton" msgid="2859593360997984240">"Udfør"</string>
+    <string name="doneButton" msgid="2859593360997984240">"Afslut"</string>
     <string name="caller_manage_header" msgid="3231519674734638786">"Telefonmøde <xliff:g id="CONF_CALL_TIME">%s</xliff:g>"</string>
     <string name="voicemail_settings_number_label" msgid="8524164258691887790">"Voicemailnummer"</string>
     <string name="card_title_dialing" msgid="5769417478498348054">"Ringer op"</string>
@@ -401,6 +401,7 @@
     <string name="card_title_hanging_up" msgid="3999101620995182450">"Lægger på"</string>
     <string name="card_title_in_call" msgid="6346543933068225205">"Opkald i gang"</string>
     <string name="card_title_my_phone_number" msgid="112428362494434191">"Mit nummer er <xliff:g id="MY_PHONE_NUMBER">%s</xliff:g>"</string>
+    <string name="notification_dialing" msgid="2107666444937350731">"Ringer op"</string>
     <string name="notification_missedCallTitle" msgid="7554385905572364535">"Ubesvarede opkald"</string>
     <string name="notification_missedCallsTitle" msgid="1361677948941502522">"Ubesvarede opkald"</string>
     <string name="notification_missedCallsMsg" msgid="4575787816055205600">"<xliff:g id="NUM_MISSED_CALLS">%s</xliff:g> ubesvarede opkald"</string>

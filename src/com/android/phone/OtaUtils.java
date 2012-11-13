@@ -17,6 +17,7 @@
 package com.android.phone;
 
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.TelephonyCapabilities;
 import com.android.internal.telephony.TelephonyProperties;
 import com.android.phone.OtaUtils.CdmaOtaInCallScreenUiState.State;
@@ -26,6 +27,7 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.PendingIntent.CanceledException;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -34,6 +36,7 @@ import android.os.AsyncResult;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -140,7 +143,7 @@ public class OtaUtils {
 
     private InCallScreen mInCallScreen;
     private Context mContext;
-    private PhoneApp mApplication;
+    private PhoneGlobals mApplication;
     private OtaWidgetData mOtaWidgetData;
     private ViewGroup mInCallTouchUi;  // UI controls for regular calls
     private CallCard mCallCard;
@@ -213,7 +216,7 @@ public class OtaUtils {
      */
     public OtaUtils(Context context, boolean interactive) {
         if (DBG) log("OtaUtils constructor...");
-        mApplication = PhoneApp.getInstance();
+        mApplication = PhoneGlobals.getInstance();
         mContext = context;
         mInteractive = interactive;
     }
@@ -281,7 +284,7 @@ public class OtaUtils {
      * @return true if we were able to launch Ota activity or it's not required; false otherwise
      */
     public static boolean maybeDoOtaCall(Context context, Handler handler, int request) {
-        PhoneApp app = PhoneApp.getInstance();
+        PhoneGlobals app = PhoneGlobals.getInstance();
         Phone phone = app.phone;
 
         if (ActivityManager.isRunningInTestHarness()) {
@@ -302,7 +305,7 @@ public class OtaUtils {
         }
         phone.unregisterForSubscriptionInfoReady(handler);
 
-        if (getLteOnCdmaMode(context) == Phone.LTE_ON_CDMA_UNKNOWN) {
+        if (getLteOnCdmaMode(context) == PhoneConstants.LTE_ON_CDMA_UNKNOWN) {
             if (sOtaCallLteRetries < OTA_CALL_LTE_RETRIES_MAX) {
                 if (DBG) log("maybeDoOtaCall: LTE state still unknown: retrying");
                 handler.sendEmptyMessageDelayed(request, OTA_CALL_LTE_RETRY_PERIOD);
@@ -323,7 +326,7 @@ public class OtaUtils {
 
         // Run the OTASP call in "interactive" mode only if
         // this is a non-LTE "voice capable" device.
-        if (PhoneApp.sVoiceCapable && getLteOnCdmaMode(context) == Phone.LTE_ON_CDMA_FALSE) {
+        if (PhoneGlobals.sVoiceCapable && getLteOnCdmaMode(context) == PhoneConstants.LTE_ON_CDMA_FALSE) {
             if (phoneNeedsActivation
                     && (otaShowActivationScreen == OTA_SHOW_ACTIVATION_SCREEN_ON)) {
                 app.cdmaOtaProvisionData.isOtaCallIntentProcessed = false;
@@ -342,7 +345,12 @@ public class OtaUtils {
                 Intent newIntent = new Intent(ACTION_PERFORM_VOICELESS_CDMA_PROVISIONING);
                 newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 newIntent.putExtra(EXTRA_VOICELESS_PROVISIONING_OFFER_DONTSHOW, true);
-                context.startActivity(newIntent);
+                try {
+                    context.startActivity(newIntent);
+                } catch (ActivityNotFoundException e) {
+                    loge("No activity Handling PERFORM_VOICELESS_CDMA_PROVISIONING!");
+                    return false;
+                }
                 if (DBG) log("maybeDoOtaCall: non-interactive; activation intent sent.");
             } else {
                 if (DBG) log("maybeDoOtaCall: non-interactive, no need for OTASP.");
@@ -360,7 +368,7 @@ public class OtaUtils {
      */
     public static void startInteractiveOtasp(Context context) {
         if (DBG) log("startInteractiveOtasp()...");
-        PhoneApp app = PhoneApp.getInstance();
+        PhoneGlobals app = PhoneGlobals.getInstance();
 
         // There are two ways to start OTASP on voice-capable devices:
         //
@@ -425,7 +433,7 @@ public class OtaUtils {
      */
     public static int startNonInteractiveOtasp(Context context) {
         if (DBG) log("startNonInteractiveOtasp()...");
-        PhoneApp app = PhoneApp.getInstance();
+        PhoneGlobals app = PhoneGlobals.getInstance();
 
         if (app.otaUtils != null) {
             // An OtaUtils instance already exists, presumably from a previous OTASP call.
@@ -441,7 +449,7 @@ public class OtaUtils {
         // TODO(InCallScreen redesign): This should probably go through
         // the CallController, rather than directly calling
         // PhoneUtils.placeCall().
-        Phone phone = PhoneApp.getPhone();
+        Phone phone = PhoneGlobals.getPhone();
         String number = OTASP_NUMBER_NON_INTERACTIVE;
         Log.i(LOG_TAG, "startNonInteractiveOtasp: placing call to '" + number + "'...");
         int callStatus = PhoneUtils.placeCall(context,
@@ -484,7 +492,7 @@ public class OtaUtils {
      */
     public static boolean isOtaspCallIntent(Intent intent) {
         if (DBG) log("isOtaspCallIntent(" + intent + ")...");
-        PhoneApp app = PhoneApp.getInstance();
+        PhoneGlobals app = PhoneGlobals.getInstance();
         Phone phone = app.mCM.getDefaultPhone();
 
         if (intent == null) {
@@ -540,7 +548,7 @@ public class OtaUtils {
      */
     public static void setupOtaspCall(Intent intent) {
         if (DBG) log("setupOtaspCall(): preparing for OTASP call to " + intent);
-        PhoneApp app = PhoneApp.getInstance();
+        PhoneGlobals app = PhoneGlobals.getInstance();
 
         if (app.otaUtils != null) {
             // An OtaUtils instance already exists, presumably from a prior OTASP call.
@@ -706,7 +714,7 @@ public class OtaUtils {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory (Intent.CATEGORY_HOME);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
+        mContext.startActivityAsUser(intent, UserHandle.CURRENT);
         return;
     }
 
@@ -1620,14 +1628,18 @@ public class OtaUtils {
         // If the telephony manager is not available yet, or if it doesn't know the answer yet,
         // try falling back on the system property that may or may not be there
         if (telephonyManager == null
-                || telephonyManager.getLteOnCdmaMode() == Phone.LTE_ON_CDMA_UNKNOWN) {
+                || telephonyManager.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_UNKNOWN) {
             return SystemProperties.getInt(TelephonyProperties.PROPERTY_LTE_ON_CDMA_DEVICE,
-                    Phone.LTE_ON_CDMA_UNKNOWN);
+                    PhoneConstants.LTE_ON_CDMA_UNKNOWN);
         }
         return telephonyManager.getLteOnCdmaMode();
     }
 
     private static void log(String msg) {
         Log.d(LOG_TAG, msg);
+    }
+
+    private static void loge(String msg) {
+        Log.e(LOG_TAG, msg);
     }
 }

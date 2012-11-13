@@ -19,6 +19,7 @@ package com.android.phone;
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.Connection;
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.phone.Constants.CallStatusCode;
 import com.android.phone.InCallUiState.ProgressIndicationType;
 
@@ -28,6 +29,7 @@ import android.os.AsyncResult;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.telephony.ServiceState;
 import android.util.Log;
@@ -64,7 +66,7 @@ public class EmergencyCallHelper extends Handler {
     private static final int RETRY_TIMEOUT = 4;
 
     private CallController mCallController;
-    private PhoneApp mApp;
+    private PhoneGlobals mApp;
     private CallManager mCM;
     private Phone mPhone;
     private String mNumber;  // The emergency number we're trying to dial
@@ -76,7 +78,7 @@ public class EmergencyCallHelper extends Handler {
     public EmergencyCallHelper(CallController callController) {
         if (DBG) log("EmergencyCallHelper constructor...");
         mCallController = callController;
-        mApp = PhoneApp.getInstance();
+        mApp = PhoneGlobals.getInstance();
         mCM =  mApp.mCM;
     }
 
@@ -278,7 +280,7 @@ public class EmergencyCallHelper extends Handler {
      * Handles the retry timer expiring.
      */
     private void onRetryTimeout() {
-        Phone.State phoneState = mCM.getState();
+        PhoneConstants.State phoneState = mCM.getState();
         int serviceState = mPhone.getServiceState().getState();
         if (DBG) log("onRetryTimeout():  phone state " + phoneState
                      + ", service state " + serviceState
@@ -292,7 +294,7 @@ public class EmergencyCallHelper extends Handler {
         //
         // - If the radio is still powered off, try powering it on again.
 
-        if (phoneState == Phone.State.OFFHOOK) {
+        if (phoneState == PhoneConstants.State.OFFHOOK) {
             if (DBG) log("- onRetryTimeout: Call is active!  Cleaning up...");
             cleanup();
             return;
@@ -345,18 +347,18 @@ public class EmergencyCallHelper extends Handler {
 
         // If airplane mode is on, we turn it off the same way that the
         // Settings activity turns it off.
-        if (Settings.System.getInt(mApp.getContentResolver(),
-                                   Settings.System.AIRPLANE_MODE_ON, 0) > 0) {
+        if (Settings.Global.getInt(mApp.getContentResolver(),
+                                   Settings.Global.AIRPLANE_MODE_ON, 0) > 0) {
             if (DBG) log("==> Turning off airplane mode...");
 
             // Change the system setting
-            Settings.System.putInt(mApp.getContentResolver(),
-                                   Settings.System.AIRPLANE_MODE_ON, 0);
+            Settings.Global.putInt(mApp.getContentResolver(),
+                                   Settings.Global.AIRPLANE_MODE_ON, 0);
 
             // Post the intent
             Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
             intent.putExtra("state", false);
-            mApp.sendBroadcast(intent);
+            mApp.sendBroadcastAsUser(intent, UserHandle.ALL);
         } else {
             // Otherwise, for some strange reason the radio is off
             // (even though the Settings database doesn't think we're

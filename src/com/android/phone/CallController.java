@@ -18,6 +18,7 @@ package com.android.phone;
 
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.TelephonyCapabilities;
 import com.android.phone.Constants.CallStatusCode;
 import com.android.phone.InCallUiState.InCallScreenMode;
@@ -60,14 +61,14 @@ import android.widget.Toast;
 public class CallController extends Handler {
     private static final String TAG = "CallController";
     private static final boolean DBG =
-            (PhoneApp.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
+            (PhoneGlobals.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     // Do not check in with VDBG = true, since that may write PII to the system log.
     private static final boolean VDBG = false;
 
     /** The singleton CallController instance. */
     private static CallController sInstance;
 
-    private PhoneApp mApp;
+    private PhoneGlobals mApp;
     private CallManager mCM;
 
     /** Helper object for emergency calls in some rare use cases.  Created lazily. */
@@ -99,7 +100,7 @@ public class CallController extends Handler {
      * PhoneApp's public "callController" field, which is why there's no
      * getInstance() method here.
      */
-    /* package */ static CallController init(PhoneApp app) {
+    /* package */ static CallController init(PhoneGlobals app) {
         synchronized (CallController.class) {
             if (sInstance == null) {
                 sInstance = new CallController(app);
@@ -114,7 +115,7 @@ public class CallController extends Handler {
      * Private constructor (this is a singleton).
      * @see init()
      */
-    private CallController(PhoneApp app) {
+    private CallController(PhoneGlobals app) {
         if (DBG) log("CallController constructor: app = " + app);
         mApp = app;
         mCM = app.mCM;
@@ -533,7 +534,7 @@ public class CallController extends Handler {
                     exitedEcm = true;  // this will cause us to return EXITED_ECM from this method
                 }
 
-                if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+                if (phone.getPhoneType() == PhoneConstants.PHONE_TYPE_CDMA) {
                     // Start the timer for 3 Way CallerInfo
                     if (mApp.cdmaPhoneCallState.getCurrentCallState()
                             == CdmaPhoneCallState.PhoneCallState.THRWAY_ACTIVE) {
@@ -719,7 +720,7 @@ public class CallController extends Handler {
                 // TODO: Rather than launching a toast from here, it would
                 // be cleaner to just set a pending call status code here,
                 // and then let the InCallScreen display the toast...
-                if (mCM.getState() == Phone.State.OFFHOOK) {
+                if (mCM.getState() == PhoneConstants.State.OFFHOOK) {
                     Toast.makeText(mApp, R.string.incall_status_dialed_mmi, Toast.LENGTH_SHORT)
                             .show();
                 }

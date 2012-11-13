@@ -135,8 +135,8 @@
     <item msgid="1108394741608734023">"Mostrar número"</item>
   </string-array>
     <string name="vm_changed" msgid="380744030726254139">"El número del buzón de voz se ha cambiado."</string>
-    <string name="vm_change_failed" msgid="3352934863246208918">"No se ha podido cambiar el número del buzón de voz."\n"Ponte en contacto con tu operador si la incidencia persiste."</string>
-    <string name="fw_change_failed" msgid="5298103228470214665">"No se ha podido cambiar el número de desvío."\n"Ponte en contacto con tu operador si la incidencia persiste."</string>
+    <string name="vm_change_failed" msgid="3352934863246208918">"No se ha podido cambiar el número del buzón de voz."\n"Ponte en contacto con tu operador si el problema persiste."</string>
+    <string name="fw_change_failed" msgid="5298103228470214665">"No se ha podido cambiar el número de desvío."\n"Ponte en contacto con tu operador si el problema persiste."</string>
     <string name="fw_get_in_vm_failed" msgid="8862896836093833973">"No se ha podido recuperar y guardar la configuración del número de desvío actual."\n"¿Quieres cambiar al nuevo proveedor de todos modos?"</string>
     <string name="no_change" msgid="3186040086622435212">"No se ha realizado ningún cambio."</string>
     <string name="sum_voicemail_choose_provider" msgid="59911196126278922">"Seleccionar servicio de buzón de voz"</string>
@@ -399,6 +399,7 @@
     <string name="card_title_hanging_up" msgid="3999101620995182450">"Colgando"</string>
     <string name="card_title_in_call" msgid="6346543933068225205">"Llamada entrante"</string>
     <string name="card_title_my_phone_number" msgid="112428362494434191">"Mi número es <xliff:g id="MY_PHONE_NUMBER">%s</xliff:g>."</string>
+    <string name="notification_dialing" msgid="2107666444937350731">"Llamando..."</string>
     <string name="notification_missedCallTitle" msgid="7554385905572364535">"Llamada perdida"</string>
     <string name="notification_missedCallsTitle" msgid="1361677948941502522">"Llamadas perdidas"</string>
     <string name="notification_missedCallsMsg" msgid="4575787816055205600">"<xliff:g id="NUM_MISSED_CALLS">%s</xliff:g> llamadas perdidas"</string>
@@ -413,7 +414,7 @@
     <string name="notification_network_selection_title" msgid="4224455487793492772">"Sin servicio"</string>
     <string name="notification_network_selection_text" msgid="2607085729661923269">"La red seleccionada (<xliff:g id="OPERATOR_NAME">%s</xliff:g>) no está disponible."</string>
     <string name="notification_action_end_call" msgid="6069460915123531620">"Colgar"</string>
-    <string name="notification_missedCall_call_back" msgid="2684890353590890187">"Volver a llamar"</string>
+    <string name="notification_missedCall_call_back" msgid="2684890353590890187">"Llamar"</string>
     <string name="notification_missedCall_message" msgid="3049928912736917988">"Mensaje"</string>
     <string name="incall_error_power_off" msgid="6550191216405193368">"Para realizar una llamada, primero debes desactivar el modo avión."</string>
     <string name="incall_error_emergency_only" msgid="4678640422710818317">"No se ha podido conectar a la red"</string>

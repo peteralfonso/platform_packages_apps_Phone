@@ -41,11 +41,13 @@ import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.internal.telephony.Call;
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.widget.multiwaveview.GlowPadView;
 import com.android.internal.widget.multiwaveview.GlowPadView.OnTriggerListener;
 import com.android.phone.InCallUiState.InCallScreenMode;
@@ -60,7 +62,7 @@ public class InCallTouchUi extends FrameLayout
         implements View.OnClickListener, View.OnLongClickListener, OnTriggerListener,
         PopupMenu.OnMenuItemClickListener, PopupMenu.OnDismissListener {
     private static final String LOG_TAG = "InCallTouchUi";
-    private static final boolean DBG = (PhoneApp.DBG_LEVEL >= 2);
+    private static final boolean DBG = (PhoneGlobals.DBG_LEVEL >= 2);
 
     // Incoming call widget targets
     private static final int ANSWER_CALL_ID = 0;  // drag right
@@ -75,7 +77,7 @@ public class InCallTouchUi extends FrameLayout
     private InCallScreen mInCallScreen;
 
     // Phone app instance
-    private PhoneApp mApp;
+    private PhoneGlobals mApp;
 
     // UI containers / elements
     private GlowPadView mIncomingCallWidget;  // UI used for an incoming call
@@ -141,7 +143,7 @@ public class InCallTouchUi extends FrameLayout
         if (DBG) log("InCallTouchUi constructor...");
         if (DBG) log("- this = " + this);
         if (DBG) log("- context " + context + ", attrs " + attrs);
-        mApp = PhoneApp.getInstance();
+        mApp = PhoneGlobals.getInstance();
     }
 
     void setInCallScreenInstance(InCallScreen inCallScreen) {
@@ -192,7 +194,7 @@ public class InCallTouchUi extends FrameLayout
         // TODO: Back when these buttons had text labels, we changed
         // the label of mSwapButton for CDMA as follows:
         //
-        //      if (PhoneApp.getPhone().getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+        //      if (PhoneApp.getPhone().getPhoneType() == PhoneConstants.PHONE_TYPE_CDMA) {
         //          // In CDMA we use a generalized text - "Manage call", as behavior on selecting
         //          // this option depends entirely on what the current call state is.
         //          mSwapButtonLabel.setText(R.string.onscreenManageCallsText);
@@ -206,14 +208,20 @@ public class InCallTouchUi extends FrameLayout
         // Buttons shown on the "extra button row", only visible in certain (rare) states.
         mExtraButtonRow = (ViewStub) mInCallControls.findViewById(R.id.extraButtonRow);
 
-        // Add a custom OnTouchListener to manually shrink the "hit target".
-        View.OnTouchListener smallerHitTargetTouchListener = new SmallerHitTargetTouchListener();
-        mEndButton.setOnTouchListener(smallerHitTargetTouchListener);
+        // If in PORTRAIT, add a custom OnTouchListener to shrink the "hit target".
+        if (!PhoneUtils.isLandscape(this.getContext())) {
+            mEndButton.setOnTouchListener(new SmallerHitTargetTouchListener());
+        }
+
     }
 
     /**
      * Updates the visibility and/or state of our UI elements, based on
      * the current state of the phone.
+     *
+     * TODO: This function should be relying on a state defined by InCallScreen,
+     * and not generic call states. The incoming call screen handles more states
+     * than Call.State or PhoneConstant.State know about.
      */
     /* package */ void updateState(CallManager cm) {
         if (mInCallScreen == null) {
@@ -221,7 +229,7 @@ public class InCallTouchUi extends FrameLayout
             return;
         }
 
-        Phone.State state = cm.getState();  // IDLE, RINGING, or OFFHOOK
+        PhoneConstants.State state = cm.getState();  // IDLE, RINGING, or OFFHOOK
         if (DBG) log("updateState: current state = " + state);
 
         boolean showIncomingCallControls = false;
@@ -260,6 +268,24 @@ public class InCallTouchUi extends FrameLayout
             long now = SystemClock.uptimeMillis();
             if (now < mLastIncomingCallActionTime + 500) {
                 log("updateState: Too soon after last action; not drawing!");
+                showIncomingCallControls = false;
+            }
+
+            // b/6765896
+            // If the glowview triggers two hits of the respond-via-sms gadget in
+            // quick succession, it can cause the incoming call widget to show and hide
+            // twice in a row.  However, the second hide doesn't get triggered because
+            // we are already attemping to hide.  This causes an additional glowview to
+            // stay up above all other screens.
+            // In reality, we shouldn't even be showing incoming-call UI while we are
+            // showing the respond-via-sms popup, so we check for that here.
+            //
+            // TODO: In the future, this entire state machine
+            // should be reworked.  Respond-via-sms was stapled onto the current
+            // design (and so were other states) and should be made a first-class
+            // citizen in a new state machine.
+            if (mInCallScreen.isQuickResponseDialogShowing()) {
+                log("updateState: quickResponse visible. Cancel showing incoming call controls.");
                 showIncomingCallControls = false;
             }
         } else {
@@ -328,7 +354,7 @@ public class InCallTouchUi extends FrameLayout
         // end ringing) or ACTIVE (when the call is actually connected.)  In any
         // state *other* than these, the popup should not be visible.
 
-        if ((state == Phone.State.OFFHOOK)
+        if ((state == PhoneConstants.State.OFFHOOK)
             && (fgCallState == Call.State.ALERTING || fgCallState == Call.State.ACTIVE)) {
             // The audio mode popup is allowed to be visible in this state.
             // So if it's up, leave it alone.
@@ -419,6 +445,7 @@ public class InCallTouchUi extends FrameLayout
         }
         return false;
     }
+
     /**
      * Updates the enabledness and "checked" state of the buttons on the
      * "inCallControls" panel, based on the current telephony state.
@@ -454,13 +481,13 @@ public class InCallTouchUi extends FrameLayout
             mAddButton.setEnabled(true);
             mMergeButton.setVisibility(View.GONE);
         } else if (inCallControlState.canMerge) {
-            if (phoneType == Phone.PHONE_TYPE_CDMA) {
+            if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
                 // In CDMA "Add" option is always given to the user and the
                 // "Merge" option is provided as a button on the top left corner of the screen,
                 // we always set the mMergeButton to GONE
                 mMergeButton.setVisibility(View.GONE);
-            } else if ((phoneType == Phone.PHONE_TYPE_GSM)
-                    || (phoneType == Phone.PHONE_TYPE_SIP)) {
+            } else if ((phoneType == PhoneConstants.PHONE_TYPE_GSM)
+                    || (phoneType == PhoneConstants.PHONE_TYPE_SIP)) {
                 mMergeButton.setVisibility(View.VISIBLE);
                 mMergeButton.setEnabled(true);
                 mAddButton.setVisibility(View.GONE);
@@ -480,8 +507,8 @@ public class InCallTouchUi extends FrameLayout
             mMergeButton.setVisibility(View.GONE);
         }
         if (inCallControlState.canAddCall && inCallControlState.canMerge) {
-            if ((phoneType == Phone.PHONE_TYPE_GSM)
-                    || (phoneType == Phone.PHONE_TYPE_SIP)) {
+            if ((phoneType == PhoneConstants.PHONE_TYPE_GSM)
+                    || (phoneType == PhoneConstants.PHONE_TYPE_SIP)) {
                 // Uh oh, the InCallControlState thinks that "Add" *and* "Merge"
                 // should both be available right now.  This *should* never
                 // happen with GSM, but if it's possible on any
@@ -489,7 +516,7 @@ public class InCallTouchUi extends FrameLayout
                 // they can both be visible at the same time...
                 Log.w(LOG_TAG, "updateInCallControls: Add *and* Merge enabled," +
                         " but can't show both!");
-            } else if (phoneType == Phone.PHONE_TYPE_CDMA) {
+            } else if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
                 // In CDMA "Add" option is always given to the user and the hence
                 // in this case both "Add" and "Merge" options would be available to user
                 if (DBG) log("updateInCallControls: CDMA: Add and Merge both enabled");
@@ -522,10 +549,12 @@ public class InCallTouchUi extends FrameLayout
             mHoldButton.setEnabled(true);
             mHoldButton.setChecked(inCallControlState.onHold);
             mSwapButton.setVisibility(View.GONE);
+            mHoldSwapSpacer.setVisibility(View.VISIBLE);
         } else if (inCallControlState.canSwap) {
             mSwapButton.setVisibility(View.VISIBLE);
             mSwapButton.setEnabled(true);
             mHoldButton.setVisibility(View.GONE);
+            mHoldSwapSpacer.setVisibility(View.VISIBLE);
         } else {
             // Neither "Hold" nor "Swap" is available.  This can happen for two
             // reasons:
@@ -559,7 +588,7 @@ public class InCallTouchUi extends FrameLayout
             Log.w(LOG_TAG, "updateInCallControls: Hold *and* Swap enabled, but can't show both!");
         }
 
-        if (phoneType == Phone.PHONE_TYPE_CDMA) {
+        if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
             if (inCallControlState.canSwap && inCallControlState.canMerge) {
                 // Uh oh, the InCallControlState thinks that Swap *and* Merge
                 // should both be available.  This *should* never happen with
@@ -583,7 +612,7 @@ public class InCallTouchUi extends FrameLayout
         // Note that mExtraButtonRow is ViewStub, which will be inflated for the first time when
         // any of its buttons becomes visible.
         final boolean showCdmaMerge =
-                (phoneType == Phone.PHONE_TYPE_CDMA) && inCallControlState.canMerge;
+                (phoneType == PhoneConstants.PHONE_TYPE_CDMA) && inCallControlState.canMerge;
         final boolean showExtraButtonRow =
                 showCdmaMerge || inCallControlState.manageConferenceVisible;
         if (showExtraButtonRow && !inCallControlState.dialpadVisible) {
@@ -1056,6 +1085,9 @@ public class InCallTouchUi extends FrameLayout
         //
         // If requested above (i.e. if mShowInCallControlsDuringHidingAnimation is set to true),
         // in-call controls will start being shown too.
+        //
+        // TODO: The decision to hide this should be made by the controller
+        // (InCallScreen), and not this view.
         hideIncomingCallWidget();
 
         // Regardless of what action the user did, be sure to clear out
@@ -1071,15 +1103,13 @@ public class InCallTouchUi extends FrameLayout
      * Apply an animation to hide the incoming call widget.
      */
     private void hideIncomingCallWidget() {
-        // if (DBG) log("hideIncomingCallWidget()...");
+        if (DBG) log("hideIncomingCallWidget()...");
         if (mIncomingCallWidget.getVisibility() != View.VISIBLE
                 || mIncomingCallWidgetIsFadingOut) {
+            if (DBG) log("Skipping hideIncomingCallWidget action");
             // Widget is already hidden or in the process of being hidden
             return;
         }
-
-        // TODO: remove this once we fixed issue 6603655
-        log("hideIncomingCallWidget()");
 
         // Hide the incoming call screen with a transition
         mIncomingCallWidgetIsFadingOut = true;
@@ -1095,6 +1125,7 @@ public class InCallTouchUi extends FrameLayout
                     mInCallControls.setVisibility(View.VISIBLE);
                 }
             }
+
             @Override
             public void onAnimationEnd(Animator animation) {
                 if (DBG) log("IncomingCallWidget's hiding animation ended");
@@ -1105,6 +1136,7 @@ public class InCallTouchUi extends FrameLayout
                 mIncomingCallWidgetIsFadingOut = false;
                 mIncomingCallWidgetShouldBeReset = true;
             }
+
             @Override
             public void onAnimationCancel(Animator animation) {
                 mIncomingCallWidget.animate().setListener(null);
@@ -1123,12 +1155,11 @@ public class InCallTouchUi extends FrameLayout
      * Shows the incoming call widget and cancels any animation that may be fading it out.
      */
     private void showIncomingCallWidget(Call ringingCall) {
-        // if (DBG) log("showIncomingCallWidget()...");
+        if (DBG) log("showIncomingCallWidget()...");
 
-        // TODO: remove this once we fixed issue 6603655
         // TODO: wouldn't be ok to suppress this whole request if the widget is already VISIBLE
         //       and we don't need to reset it?
-        log("showIncomingCallWidget(). widget visibility: " + mIncomingCallWidget.getVisibility());
+        // log("showIncomingCallWidget(). widget visibility: " + mIncomingCallWidget.getVisibility());
 
         ViewPropertyAnimator animator = mIncomingCallWidget.animate();
         if (animator != null) {
@@ -1176,6 +1207,16 @@ public class InCallTouchUi extends FrameLayout
             // touch the widget.)
             mIncomingCallWidget.reset(false);
             mIncomingCallWidgetShouldBeReset = false;
+        }
+
+        // On an incoming call, if the layout is landscape, then align the "incoming call" text
+        // to the left, because the incomingCallWidget (black background with glowing ring)
+        // is aligned to the right and would cover the "incoming call" text.
+        // Note that callStateLabel is within CallCard, outside of the context of InCallTouchUi
+        if (PhoneUtils.isLandscape(this.getContext())) {
+            TextView callStateLabel = (TextView) mIncomingCallWidget
+                    .getRootView().findViewById(R.id.callStateLabel);
+            if (callStateLabel != null) callStateLabel.setGravity(Gravity.LEFT);
         }
 
         mIncomingCallWidget.setVisibility(View.VISIBLE);

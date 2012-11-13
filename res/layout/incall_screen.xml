@@ -38,7 +38,6 @@
          of the in-call screen, and also the DTMF dialpad (which, when
          visible, covers the upper part of the screen too.) -->
     <include layout="@layout/incall_touch_ui"
-        android:id="@+id/inCallTouchUi"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

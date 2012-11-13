@@ -16,6 +16,7 @@
 
 package com.android.phone;
 
+import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -27,11 +28,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 import android.os.ServiceManager;
+import android.os.UserHandle;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.CellInfo;
 import android.telephony.ServiceState;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -40,6 +42,7 @@ import com.android.internal.telephony.IccCard;
 import com.android.internal.telephony.ITelephony;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.CallManager;
+import com.android.internal.telephony.PhoneConstants;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -49,7 +52,8 @@ import java.util.ArrayList;
  */
 public class PhoneInterfaceManager extends ITelephony.Stub {
     private static final String LOG_TAG = "PhoneInterfaceManager";
-    private static final boolean DBG = (PhoneApp.DBG_LEVEL >= 2);
+    private static final boolean DBG = (PhoneGlobals.DBG_LEVEL >= 2);
+    private static final boolean DBG_LOC = false;
 
     // Message codes used with mMainThreadHandler
     private static final int CMD_HANDLE_PIN_MMI = 1;
@@ -62,7 +66,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     /** The singleton instance. */
     private static PhoneInterfaceManager sInstance;
 
-    PhoneApp mApp;
+    PhoneGlobals mApp;
     Phone mPhone;
     CallManager mCM;
     MainThreadHandler mMainThreadHandler;
@@ -146,11 +150,11 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                     request = (MainThreadRequest) msg.obj;
                     boolean hungUp = false;
                     int phoneType = mPhone.getPhoneType();
-                    if (phoneType == Phone.PHONE_TYPE_CDMA) {
+                    if (phoneType == PhoneConstants.PHONE_TYPE_CDMA) {
                         // CDMA: If the user presses the Power button we treat it as
                         // ending the complete call session
                         hungUp = PhoneUtils.hangupRingingAndActive(mPhone);
-                    } else if (phoneType == Phone.PHONE_TYPE_GSM) {
+                    } else if (phoneType == PhoneConstants.PHONE_TYPE_GSM) {
                         // GSM: End the call as per the Phone state
                         hungUp = PhoneUtils.hangup(mCM);
                     } else {
@@ -212,7 +216,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
      * Initialize the singleton PhoneInterfaceManager instance.
      * This is only done once, at startup, from PhoneApp.onCreate().
      */
-    /* package */ static PhoneInterfaceManager init(PhoneApp app, Phone phone) {
+    /* package */ static PhoneInterfaceManager init(PhoneGlobals app, Phone phone) {
         synchronized (PhoneInterfaceManager.class) {
             if (sInstance == null) {
                 sInstance = new PhoneInterfaceManager(app, phone);
@@ -224,10 +228,10 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     }
 
     /** Private constructor; @see init() */
-    private PhoneInterfaceManager(PhoneApp app, Phone phone) {
+    private PhoneInterfaceManager(PhoneGlobals app, Phone phone) {
         mApp = app;
         mPhone = phone;
-        mCM = PhoneApp.getInstance().mCM;
+        mCM = PhoneGlobals.getInstance().mCM;
         mMainThreadHandler = new MainThreadHandler();
         publish();
     }
@@ -254,8 +258,8 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         }
 
         // PENDING: should we just silently fail if phone is offhook or ringing?
-        Phone.State state = mCM.getState();
-        if (state != Phone.State.OFFHOOK && state != Phone.State.RINGING) {
+        PhoneConstants.State state = mCM.getState();
+        if (state != PhoneConstants.State.OFFHOOK && state != PhoneConstants.State.RINGING) {
             Intent  intent = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mApp.startActivity(intent);
@@ -282,7 +286,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     private boolean showCallScreenInternal(boolean specifyInitialDialpadState,
                                            boolean initialDialpadState) {
-        if (!PhoneApp.sVoiceCapable) {
+        if (!PhoneGlobals.sVoiceCapable) {
             // Never allow the InCallScreen to appear on data-only devices.
             return false;
         }
@@ -294,9 +298,9 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         try {
             Intent intent;
             if (specifyInitialDialpadState) {
-                intent = PhoneApp.createInCallIntent(initialDialpadState);
+                intent = PhoneGlobals.createInCallIntent(initialDialpadState);
             } else {
-                intent = PhoneApp.createInCallIntent();
+                intent = PhoneGlobals.createInCallIntent();
             }
             try {
                 mApp.startActivity(intent);
@@ -397,7 +401,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
      * @see silenceRinger
      */
     private void silenceRingerInternal() {
-        if ((mCM.getState() == Phone.State.RINGING)
+        if ((mCM.getState() == PhoneConstants.State.RINGING)
             && mApp.notifier.isRinging()) {
             // Ringer is actually playing, so silence it.
             if (DBG) log("silenceRingerInternal: silencing...");
@@ -406,20 +410,20 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     }
 
     public boolean isOffhook() {
-        return (mCM.getState() == Phone.State.OFFHOOK);
+        return (mCM.getState() == PhoneConstants.State.OFFHOOK);
     }
 
     public boolean isRinging() {
-        return (mCM.getState() == Phone.State.RINGING);
+        return (mCM.getState() == PhoneConstants.State.RINGING);
     }
 
     public boolean isIdle() {
-        return (mCM.getState() == Phone.State.IDLE);
+        return (mCM.getState() == PhoneConstants.State.IDLE);
     }
 
     public boolean isSimPinEnabled() {
         enforceReadPermission();
-        return (PhoneApp.getInstance().isSimPinEnabled());
+        return (PhoneGlobals.getInstance().isSimPinEnabled());
     }
 
     public boolean supplyPin(String pin) {
@@ -595,6 +599,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         return DefaultPhoneNotifier.convertDataActivityState(mPhone.getDataActivityState());
     }
 
+    @Override
     public Bundle getCellLocation() {
         try {
             mApp.enforceCallingOrSelfPermission(
@@ -606,23 +611,33 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
             mApp.enforceCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION, null);
         }
-        Bundle data = new Bundle();
-        mPhone.getCellLocation().fillInNotifierBundle(data);
-        return data;
+
+        if (checkIfCallerIsSelfOrForegoundUser()) {
+            if (DBG_LOC) log("getCellLocation: is active user");
+            Bundle data = new Bundle();
+            mPhone.getCellLocation().fillInNotifierBundle(data);
+            return data;
+        } else {
+            if (DBG_LOC) log("getCellLocation: suppress non-active user");
+            return null;
+        }
     }
 
+    @Override
     public void enableLocationUpdates() {
         mApp.enforceCallingOrSelfPermission(
                 android.Manifest.permission.CONTROL_LOCATION_UPDATES, null);
         mPhone.enableLocationUpdates();
     }
 
+    @Override
     public void disableLocationUpdates() {
         mApp.enforceCallingOrSelfPermission(
                 android.Manifest.permission.CONTROL_LOCATION_UPDATES, null);
         mPhone.disableLocationUpdates();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public List<NeighboringCellInfo> getNeighboringCellInfo() {
         try {
@@ -637,19 +652,26 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                     android.Manifest.permission.ACCESS_COARSE_LOCATION, null);
         }
 
-        ArrayList<NeighboringCellInfo> cells = null;
+        if (checkIfCallerIsSelfOrForegoundUser()) {
+            if (DBG_LOC) log("getNeighboringCellInfo: is active user");
 
-        try {
-            cells = (ArrayList<NeighboringCellInfo>) sendRequest(
-                    CMD_HANDLE_NEIGHBORING_CELL, null);
-        } catch (RuntimeException e) {
-            Log.e(LOG_TAG, "getNeighboringCellInfo " + e);
+            ArrayList<NeighboringCellInfo> cells = null;
+
+            try {
+                cells = (ArrayList<NeighboringCellInfo>) sendRequest(
+                        CMD_HANDLE_NEIGHBORING_CELL, null);
+            } catch (RuntimeException e) {
+                Log.e(LOG_TAG, "getNeighboringCellInfo " + e);
+            }
+            return cells;
+        } else {
+            if (DBG_LOC) log("getNeighboringCellInfo: suppress non-active user");
+            return null;
         }
-
-        return (List <NeighboringCellInfo>) cells;
     }
 
 
+    @Override
     public List<CellInfo> getAllCellInfo() {
         try {
             mApp.enforceCallingOrSelfPermission(
@@ -662,13 +684,50 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                 android.Manifest.permission.ACCESS_COARSE_LOCATION, null);
         }
 
-        // TODO return cell info list got from mPhone
-        return null;
+        if (checkIfCallerIsSelfOrForegoundUser()) {
+            if (DBG_LOC) log("getAllCellInfo: is active user");
+            return mPhone.getAllCellInfo();
+        } else {
+            if (DBG_LOC) log("getAllCellInfo: suppress non-active user");
+            return null;
+        }
     }
 
     //
     // Internal helper methods.
     //
+
+    private boolean checkIfCallerIsSelfOrForegoundUser() {
+        boolean ok;
+
+        boolean self = Binder.getCallingUid() == Process.myUid();
+        if (!self) {
+            // Get the caller's user id then clear the calling identity
+            // which will be restored in the finally clause.
+            int callingUser = UserHandle.getCallingUserId();
+            long ident = Binder.clearCallingIdentity();
+
+            try {
+                // With calling identity cleared the current user is the foreground user.
+                int foregroundUser = ActivityManager.getCurrentUser();
+                ok = (foregroundUser == callingUser);
+                if (DBG_LOC) {
+                    log("checkIfCallerIsSelfOrForegoundUser: foregroundUser=" + foregroundUser
+                            + " callingUser=" + callingUser + " ok=" + ok);
+                }
+            } catch (Exception ex) {
+                if (DBG_LOC) loge("checkIfCallerIsSelfOrForegoundUser: Exception ex=" + ex);
+                ok = false;
+            } finally {
+                Binder.restoreCallingIdentity(ident);
+            }
+        } else {
+            if (DBG_LOC) log("checkIfCallerIsSelfOrForegoundUser: is self");
+            ok = true;
+        }
+        if (DBG_LOC) log("checkIfCallerIsSelfOrForegoundUser: ret=" + ok);
+        return ok;
+    }
 
     /**
      * Make sure the caller has the READ_PHONE_STATE permission.
@@ -710,6 +769,10 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     private void log(String msg) {
         Log.d(LOG_TAG, "[PhoneIntfMgr] " + msg);
+    }
+
+    private void loge(String msg) {
+        Log.e(LOG_TAG, "[PhoneIntfMgr] " + msg);
     }
 
     public int getActivePhoneType() {

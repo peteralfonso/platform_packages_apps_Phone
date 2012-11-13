@@ -5,8 +5,6 @@ LOCAL_PATH:= $(call my-dir)
 #  LOCAL_STATIC_JAVA_LIBRARIES := com.android.phone.common
 include $(CLEAR_VARS)
 
-LOCAL_MODULE_TAGS := user
-
 LOCAL_SRC_FILES := \
 	src/com/android/phone/CallLogAsync.java \
 	src/com/android/phone/HapticFeedback.java
@@ -18,8 +16,7 @@ include $(BUILD_STATIC_JAVA_LIBRARY)
 # for the 'other' dialer.
 include $(CLEAR_VARS)
 
-LOCAL_MODULE_TAGS := optional
-
+LOCAL_JAVA_LIBRARIES := telephony-common
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 LOCAL_SRC_FILES += \
         src/com/android/phone/EventLogTags.logtags \

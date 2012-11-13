@@ -18,6 +18,7 @@ package com.android.phone;
 
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.sip.SipPhone;
 import com.android.phone.sip.SipProfileDb;
@@ -79,7 +80,7 @@ public class SipBroadcastReceiver extends BroadcastReceiver {
 
     private void removeSipPhone(String sipUri) {
         for (Phone phone : CallManager.getInstance().getAllPhones()) {
-            if (phone.getPhoneType() == Phone.PHONE_TYPE_SIP) {
+            if (phone.getPhoneType() == PhoneConstants.PHONE_TYPE_SIP) {
                 if (((SipPhone) phone).getSipUri().equals(sipUri)) {
                     CallManager.getInstance().unregisterPhone((SipPhone)phone);
                     return;
@@ -90,12 +91,12 @@ public class SipBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void takeCall(Intent intent) {
-        Context phoneContext = PhoneApp.getInstance();
+        Context phoneContext = PhoneGlobals.getInstance();
         try {
             SipAudioCall sipAudioCall = SipManager.newInstance(phoneContext)
                     .takeAudioCall(intent, null);
             for (Phone phone : CallManager.getInstance().getAllPhones()) {
-                if (phone.getPhoneType() == Phone.PHONE_TYPE_SIP) {
+                if (phone.getPhoneType() == PhoneConstants.PHONE_TYPE_SIP) {
                    if (((SipPhone) phone).canTake(sipAudioCall)) return;
                 }
             }
@@ -106,7 +107,7 @@ public class SipBroadcastReceiver extends BroadcastReceiver {
     }
 
     private void registerAllProfiles() {
-        final Context context = PhoneApp.getInstance();
+        final Context context = PhoneGlobals.getInstance();
         new Thread(new Runnable() {
             public void run() {
                 SipManager sipManager = SipManager.newInstance(context);

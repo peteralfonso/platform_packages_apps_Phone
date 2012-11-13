@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,6 +37,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.internal.telephony.TelephonyCapabilities;
 
 /**
@@ -59,7 +61,7 @@ public class OutgoingCallBroadcaster extends Activity
     private static final String PERMISSION = android.Manifest.permission.PROCESS_OUTGOING_CALLS;
     private static final String TAG = "OutgoingCallBroadcaster";
     private static final boolean DBG =
-            (PhoneApp.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
+            (PhoneGlobals.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     // Do not check in with VDBG = true, since that may write PII to the system log.
     private static final boolean VDBG = false;
 
@@ -144,7 +146,7 @@ public class OutgoingCallBroadcaster extends Activity
             number = getResultData();
             if (VDBG) Log.v(TAG, "- got number from resultData: '" + number + "'");
 
-            final PhoneApp app = PhoneApp.getInstance();
+            final PhoneGlobals app = PhoneGlobals.getInstance();
 
             // OTASP-specific checks.
             // TODO: This should probably all happen in
@@ -192,7 +194,7 @@ public class OutgoingCallBroadcaster extends Activity
                 if (DBG) Log.v(TAG, "CALL cancelled (null number), returning...");
                 return;
             } else if (TelephonyCapabilities.supportsOtasp(app.phone)
-                    && (app.phone.getState() != Phone.State.IDLE)
+                    && (app.phone.getState() != PhoneConstants.State.IDLE)
                     && (app.phone.isOtaSpNumber(number))) {
                 if (DBG) Log.v(TAG, "Call is active, a 2nd OTA call cancelled -- returning.");
                 return;
@@ -389,7 +391,7 @@ public class OutgoingCallBroadcaster extends Activity
         final Configuration configuration = getResources().getConfiguration();
 
         // Outgoing phone calls are only allowed on "voice-capable" devices.
-        if (!PhoneApp.sVoiceCapable) {
+        if (!PhoneGlobals.sVoiceCapable) {
             Log.i(TAG, "This device is detected as non-voice-capable device.");
             handleNonVoiceCapable(intent);
             return;
@@ -520,7 +522,7 @@ public class OutgoingCallBroadcaster extends Activity
         // Also, this ensures the device stays awake while doing the following
         // broadcast; technically we should be holding a wake lock here
         // as well.
-        PhoneApp.getInstance().wakeUpScreen();
+        PhoneGlobals.getInstance().wakeUpScreen();
 
         // If number is null, we're probably trying to call a non-existent voicemail number,
         // send an empty flash or something else is fishy.  Whatever the problem, there's no
@@ -528,7 +530,7 @@ public class OutgoingCallBroadcaster extends Activity
         if (TextUtils.isEmpty(number)) {
             if (intent.getBooleanExtra(EXTRA_SEND_EMPTY_FLASH, false)) {
                 Log.i(TAG, "onCreate: SEND_EMPTY_FLASH...");
-                PhoneUtils.sendEmptyFlash(PhoneApp.getPhone());
+                PhoneUtils.sendEmptyFlash(PhoneGlobals.getPhone());
                 finish();
                 return;
             } else {
@@ -546,7 +548,7 @@ public class OutgoingCallBroadcaster extends Activity
 
             // Initiate the outgoing call, and simultaneously launch the
             // InCallScreen to display the in-call UI:
-            PhoneApp.getInstance().callController.placeCall(intent);
+            PhoneGlobals.getInstance().callController.placeCall(intent);
 
             // Note we do *not* "return" here, but instead continue and
             // send the ACTION_NEW_OUTGOING_CALL broadcast like for any
@@ -558,13 +560,13 @@ public class OutgoingCallBroadcaster extends Activity
 
         // Remember the call origin so that users will be able to see an appropriate screen
         // after the phone call. This should affect both phone calls and SIP calls.
-        final String callOrigin = intent.getStringExtra(PhoneApp.EXTRA_CALL_ORIGIN);
+        final String callOrigin = intent.getStringExtra(PhoneGlobals.EXTRA_CALL_ORIGIN);
         if (callOrigin != null) {
             if (DBG) Log.v(TAG, " - Call origin is passed (" + callOrigin + ")");
-            PhoneApp.getInstance().setLatestActiveCallOrigin(callOrigin);
+            PhoneGlobals.getInstance().setLatestActiveCallOrigin(callOrigin);
         } else {
             if (DBG) Log.v(TAG, " - Call origin is not passed. Reset current one.");
-            PhoneApp.getInstance().resetLatestActiveCallOrigin();
+            PhoneGlobals.getInstance().resetLatestActiveCallOrigin();
         }
 
         // For now, SIP calls will be processed directly without a
@@ -608,7 +610,8 @@ public class OutgoingCallBroadcaster extends Activity
         // timeout.
         mHandler.sendEmptyMessageDelayed(EVENT_OUTGOING_CALL_TIMEOUT,
                 OUTGOING_CALL_TIMEOUT_THRESHOLD);
-        sendOrderedBroadcast(broadcastIntent, PERMISSION, new OutgoingCallReceiver(),
+        sendOrderedBroadcastAsUser(broadcastIntent, UserHandle.OWNER,
+                PERMISSION, new OutgoingCallReceiver(),
                 null,  // scheduler
                 Activity.RESULT_OK,  // initialCode
                 number,  // initialData: initial value for the result data

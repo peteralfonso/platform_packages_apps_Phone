@@ -15,4 +15,7 @@
 -->
 <resources>
     <dimen name="emergency_dialer_digits_height">66dip</dimen>
+
+    <!-- Height of the "call banner" overlay on bottom of the call_card -->
+    <dimen name="call_banner_height">@dimen/in_call_end_button_height</dimen>
 </resources>
