@@ -16,7 +16,10 @@
 
 package com.android.phone;
 
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncResult;
 import android.os.Binder;
@@ -25,6 +28,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.provider.Settings;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.ServiceState;
 import android.telephony.TelephonyManager;
@@ -54,6 +58,11 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     private static final int CMD_ANSWER_RINGING_CALL = 4;
     private static final int CMD_END_CALL = 5;  // not used yet
     private static final int CMD_SILENCE_RINGER = 6;
+    private static final int CMD_TOGGLE_LTE = 7; // not used yet
+    private static final int CMD_TOGGLE_2G = 8; // not used yet
+
+    /** The singleton instance. */
+    private static PhoneInterfaceManager sInstance;
 
     PhoneApp mApp;
     Phone mPhone;
@@ -201,7 +210,23 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         mMainThreadHandler.sendEmptyMessage(command);
     }
 
-    public PhoneInterfaceManager(PhoneApp app, Phone phone) {
+    /**
+     * Initialize the singleton PhoneInterfaceManager instance.
+     * This is only done once, at startup, from PhoneApp.onCreate().
+     */
+    /* package */ static PhoneInterfaceManager init(PhoneApp app, Phone phone) {
+        synchronized (PhoneInterfaceManager.class) {
+            if (sInstance == null) {
+                sInstance = new PhoneInterfaceManager(app, phone);
+            } else {
+                Log.wtf(LOG_TAG, "init() called multiple times!  sInstance = " + sInstance);
+            }
+            return sInstance;
+        }
+    }
+
+    /** Private constructor; @see init() */
+    private PhoneInterfaceManager(PhoneApp app, Phone phone) {
         mApp = app;
         mPhone = phone;
         mCM = PhoneApp.getInstance().mCM;
@@ -254,12 +279,41 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse(url));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName(mApp, PhoneApp.getCallScreenClassName());
         mApp.startActivity(intent);
+    }
+
+    public void toggleLTE(boolean on) {
+        int network = -1;
+        if (on) {
+            network = Phone.NT_MODE_GLOBAL;
+        } else {
+            network = Phone.NT_MODE_CDMA;
+        }
+        mPhone.setPreferredNetworkType(network,
+                mMainThreadHandler.obtainMessage(CMD_TOGGLE_LTE));
+        Settings.Secure.putInt(mApp.getContentResolver(),
+                Settings.Secure.PREFERRED_NETWORK_MODE, network);
+    }
+    
+    public void toggle2G(boolean on) {
+        int network = -1;
+        if (on) {
+            network = Phone.NT_MODE_GSM_ONLY;
+        } else {
+            network = Phone.NT_MODE_WCDMA_PREF;
+        }
+        mPhone.setPreferredNetworkType(network,
+                mMainThreadHandler.obtainMessage(CMD_TOGGLE_2G));
+        Settings.Secure.putInt(mApp.getContentResolver(),
+                Settings.Secure.PREFERRED_NETWORK_MODE, network);
     }
 
     private boolean showCallScreenInternal(boolean specifyInitialDialpadState,
                                            boolean initialDialpadState) {
+        if (!PhoneApp.sVoiceCapable) {
+            // Never allow the InCallScreen to appear on data-only devices.
+            return false;
+        }
         if (isIdle()) {
             return false;
         }
@@ -272,7 +326,16 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
             } else {
                 intent = PhoneApp.createInCallIntent();
             }
-            mApp.startActivity(intent);
+            try {
+                mApp.startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                // It's possible that the in-call UI might not exist
+                // (like on non-voice-capable devices), although we
+                // shouldn't be trying to bring up the InCallScreen on
+                // devices like that in the first place!
+                Log.w(LOG_TAG, "showCallScreenInternal: "
+                      + "transition to InCallScreen failed; intent = " + intent);
+            }
         } finally {
             Binder.restoreCallingIdentity(callingId);
         }
@@ -389,16 +452,23 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     public boolean supplyPin(String pin) {
         enforceModifyPermission();
-        final CheckSimPin checkSimPin = new CheckSimPin(mPhone.getIccCard());
+        final UnlockSim checkSimPin = new UnlockSim(mPhone.getIccCard());
         checkSimPin.start();
-        return checkSimPin.checkPin(pin);
+        return checkSimPin.unlockSim(null, pin);
+    }
+
+    public boolean supplyPuk(String puk, String pin) {
+        enforceModifyPermission();
+        final UnlockSim checkSimPuk = new UnlockSim(mPhone.getIccCard());
+        checkSimPuk.start();
+        return checkSimPuk.unlockSim(puk, pin);
     }
 
     /**
      * Helper thread to turn async call to {@link SimCard#supplyPin} into
      * a synchronous one.
      */
-    private static class CheckSimPin extends Thread {
+    private static class UnlockSim extends Thread {
 
         private final IccCard mSimCard;
 
@@ -411,14 +481,14 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         // For async handler to identify request type
         private static final int SUPPLY_PIN_COMPLETE = 100;
 
-        public CheckSimPin(IccCard simCard) {
+        public UnlockSim(IccCard simCard) {
             mSimCard = simCard;
         }
 
         @Override
         public void run() {
             Looper.prepare();
-            synchronized (CheckSimPin.this) {
+            synchronized (UnlockSim.this) {
                 mHandler = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
@@ -426,21 +496,28 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                         switch (msg.what) {
                             case SUPPLY_PIN_COMPLETE:
                                 Log.d(LOG_TAG, "SUPPLY_PIN_COMPLETE");
-                                synchronized (CheckSimPin.this) {
+                                synchronized (UnlockSim.this) {
                                     mResult = (ar.exception == null);
                                     mDone = true;
-                                    CheckSimPin.this.notifyAll();
+                                    UnlockSim.this.notifyAll();
                                 }
                                 break;
                         }
                     }
                 };
-                CheckSimPin.this.notifyAll();
+                UnlockSim.this.notifyAll();
             }
             Looper.loop();
         }
 
-        synchronized boolean checkPin(String pin) {
+        /*
+         * Use PIN or PUK to unlock SIM card
+         *
+         * If PUK is null, unlock SIM card with PIN
+         *
+         * If PUK is not null, unlock SIM card with PUK and set PIN code
+         */
+        synchronized boolean unlockSim(String puk, String pin) {
 
             while (mHandler == null) {
                 try {
@@ -451,7 +528,11 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
             }
             Message callback = Message.obtain(mHandler, SUPPLY_PIN_COMPLETE);
 
-            mSimCard.supplyPin(pin, callback);
+            if (puk == null) {
+                mSimCard.supplyPin(pin, callback);
+            } else {
+                mSimCard.supplyPuk(puk, pin, callback);
+            }
 
             while (!mDone) {
                 try {
@@ -492,7 +573,10 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     public boolean enableDataConnectivity() {
         enforceModifyPermission();
-        return mPhone.enableDataConnectivity();
+        ConnectivityManager cm =
+                (ConnectivityManager)mApp.getSystemService(Context.CONNECTIVITY_SERVICE);
+        cm.setMobileDataEnabled(true);
+        return true;
     }
 
     public int enableApnType(String type) {
@@ -507,7 +591,10 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     public boolean disableDataConnectivity() {
         enforceModifyPermission();
-        return mPhone.disableDataConnectivity();
+        ConnectivityManager cm =
+                (ConnectivityManager)mApp.getSystemService(Context.CONNECTIVITY_SERVICE);
+        cm.setMobileDataEnabled(false);
+        return true;
     }
 
     public boolean isDataConnectivityPossible() {
@@ -521,7 +608,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     public void cancelMissedCallsNotification() {
         enforceModifyPermission();
-        NotificationMgr.getDefault().cancelMissedCallNotification();
+        mApp.notificationMgr.cancelMissedCallNotification();
     }
 
     public int getCallState() {
@@ -667,20 +754,8 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     /**
      * Returns true if CDMA provisioning needs to run.
      */
-    public boolean getCdmaNeedsProvisioning() {
-        if (getActivePhoneType() == Phone.PHONE_TYPE_GSM) {
-            return false;
-        }
-
-        boolean needsProvisioning = false;
-        String cdmaMin = mPhone.getCdmaMin();
-        try {
-            needsProvisioning = OtaUtils.needsActivation(cdmaMin);
-        } catch (IllegalArgumentException e) {
-            // shouldn't get here unless hardware is misconfigured
-            Log.e(LOG_TAG, "CDMA MIN string " + ((cdmaMin == null) ? "was null" : "was too short"));
-        }
-        return needsProvisioning;
+    public boolean needsOtaServiceProvisioning() {
+        return mPhone.needsOtaServiceProvisioning();
     }
 
     /**
@@ -719,6 +794,12 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                 return TelephonyManager.NETWORK_TYPE_EVDO_A;
             case ServiceState.RADIO_TECHNOLOGY_EVDO_B:
                 return TelephonyManager.NETWORK_TYPE_EVDO_B;
+            case ServiceState.RADIO_TECHNOLOGY_EHRPD:
+                return TelephonyManager.NETWORK_TYPE_EHRPD;
+            case ServiceState.RADIO_TECHNOLOGY_LTE:
+                return TelephonyManager.NETWORK_TYPE_LTE;
+            case ServiceState.RADIO_TECHNOLOGY_HSPAP:
+                return TelephonyManager.NETWORK_TYPE_HSPAP;
             default:
                 return TelephonyManager.NETWORK_TYPE_UNKNOWN;
         }
@@ -729,5 +810,17 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
      */
     public boolean hasIccCard() {
         return mPhone.getIccCard().hasIccCard();
+    }
+
+    /**
+     * Return if the current radio is LTE on CDMA. This
+     * is a tri-state return value as for a period of time
+     * the mode may be unknown.
+     *
+     * @return {@link Phone#LTE_ON_CDMA_UNKNOWN}, {@link Phone#LTE_ON_CDMA_FALSE}
+     * or {@link PHone#LTE_ON_CDMA_TRUE}
+     */
+    public int getLteOnCdmaMode() {
+        return mPhone.getLteOnCdmaMode();
     }
 }

@@ -31,15 +31,13 @@ import com.android.internal.telephony.CallManager;
  * UI, based on the current telephony state.
  *
  * This class is independent of the exact UI controls used on any given
- * device.  (Some devices use onscreen touchable buttons, for example, and
- * other devices use menu items.)  To avoid cluttering up the InCallMenu
- * and InCallTouchUi code with logic about which functions are available
- * right now, we instead have that logic here, and provide simple boolean
- * flags to indicate the state and/or enabledness of all possible in-call
- * user operations.
+ * device.  To avoid cluttering up the "view" code (i.e. InCallTouchUi)
+ * with logic about which functions are available right now, we instead
+ * have that logic here, and provide simple boolean flags to indicate the
+ * state and/or enabledness of all possible in-call user operations.
  *
  * (In other words, this is the "model" that corresponds to the "view"
- * implemented by InCallMenu and InCallTouchUi.)
+ * implemented by InCallTouchUi.)
  */
 public class InCallControlState {
     private static final String LOG_TAG = "InCallControlState";
@@ -57,6 +55,8 @@ public class InCallControlState {
     public boolean manageConferenceEnabled;
     //
     public boolean canAddCall;
+    //
+    public boolean canEndCall;
     //
     public boolean canSwap;
     public boolean canMerge;
@@ -96,6 +96,7 @@ public class InCallControlState {
      * the Phone.
      */
     public void update() {
+        final Phone.State state = mCM.getState();  // coarse-grained voice call state
         final Call fgCall = mCM.getActiveFgCall();
         final Call.State fgCallState = fgCall.getState();
         final boolean hasActiveForegroundCall = (fgCallState == Call.State.ACTIVE);
@@ -118,6 +119,13 @@ public class InCallControlState {
         // "Add call":
         canAddCall = PhoneUtils.okToAddCall(mCM);
 
+        // "End call": always enabled.
+        // We keep this button enabled even in states where it's technically not
+        // needed, like during the brief "Call ended" state, where the phone is
+        // IDLE.  (See InCallScreen.internalHangup() for the handling of that
+        // case.)
+        canEndCall = true;
+
         // Swap / merge calls
         canSwap = PhoneUtils.okToSwapCalls(mCM);
         canMerge = PhoneUtils.okToMergeCalls(mCM);
@@ -131,9 +139,9 @@ public class InCallControlState {
             bluetoothIndicatorOn = false;
         }
 
-        // "Speaker": always enabled.
+        // "Speaker": always enabled unless the phone is totally idle.
         // The current speaker state comes from the AudioManager.
-        speakerEnabled = true;
+        speakerEnabled = (state != Phone.State.IDLE);
         speakerOn = PhoneUtils.isSpeakerOn(mInCallScreen);
 
         // "Mute": only enabled when the foreground call is ACTIVE.
@@ -142,7 +150,9 @@ public class InCallControlState {
         // emergency callback mode (ECM) is active.
         Connection c = fgCall.getLatestConnection();
         boolean isEmergencyCall = false;
-        if (c != null) isEmergencyCall = PhoneNumberUtils.isEmergencyNumber(c.getAddress());
+        if (c != null) isEmergencyCall =
+                PhoneNumberUtils.isLocalEmergencyNumber(c.getAddress(),
+                                                        fgCall.getPhone().getContext());
         boolean isECM = PhoneUtils.isPhoneInEcm(fgCall.getPhone());
         if (isEmergencyCall || isECM) {  // disable "Mute" item
             canMute = false;
@@ -173,6 +183,18 @@ public class InCallControlState {
             boolean okToHold = hasActiveForegroundCall && !hasHoldingCall;
             boolean okToUnhold = onHold;
             canHold = okToHold || okToUnhold;
+        } else if (hasHoldingCall && (fgCallState == Call.State.IDLE)) {
+            // Even when foreground phone device doesn't support hold/unhold, phone devices
+            // for background holding calls may do.
+            //
+            // If the foreground call is ACTIVE,  we should turn on "swap" button instead.
+            final Call bgCall = mCM.getFirstActiveBgCall();
+            if (bgCall != null &&
+                    TelephonyCapabilities.supportsHoldAndUnhold(bgCall.getPhone())) {
+                supportsHold = true;
+                onHold = true;
+                canHold = true;
+            }
         } else {
             // This device has no concept of "putting a call on hold."
             supportsHold = false;
@@ -188,6 +210,7 @@ public class InCallControlState {
         log("  manageConferenceVisible: " + manageConferenceVisible);
         log("  manageConferenceEnabled: " + manageConferenceEnabled);
         log("  canAddCall: " + canAddCall);
+        log("  canEndCall: " + canEndCall);
         log("  canSwap: " + canSwap);
         log("  canMerge: " + canMerge);
         log("  bluetoothEnabled: " + bluetoothEnabled);

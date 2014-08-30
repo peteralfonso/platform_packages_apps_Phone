@@ -16,6 +16,14 @@
 
 package com.android.phone;
 
+import com.android.internal.telephony.CallForwardInfo;
+import com.android.internal.telephony.CommandsInterface;
+import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.cdma.TtyIntent;
+import com.android.phone.sip.SipSharedPreferences;
+
+import android.app.ActionBar;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -30,7 +38,6 @@ import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.sip.SipManager;
-import android.net.sip.SipProfile;
 import android.os.AsyncResult;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,20 +48,14 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
-import android.provider.Settings;
 import android.provider.ContactsContract.CommonDataKinds;
+import android.provider.Settings;
 import android.telephony.PhoneNumberUtils;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.ListAdapter;
-
-import com.android.internal.telephony.CallForwardInfo;
-import com.android.internal.telephony.CommandsInterface;
-import com.android.internal.telephony.Phone;
-import com.android.internal.telephony.PhoneFactory;
-import com.android.internal.telephony.cdma.TtyIntent;
-import com.android.phone.sip.SipSharedPreferences;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,7 +64,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Top level "Call settings" UI; see res/xml/call_feature_setting.xml
+ *
+ * This preference screen is the root of the "Call settings" hierarchy
+ * available from the Phone app; the settings here let you control various
+ * features related to phone calls (including voicemail settings, SIP
+ * settings, the "Respond via SMS" feature, and others.)  It's used only
+ * on voice-capable phone devices.
+ *
+ * Note that this activity is part of the package com.android.phone, even
+ * though you reach it from the "Phone" app (i.e. DialtactsActivity) which
+ * is from the package com.android.contacts.
+ *
+ * For the "Mobile network settings" screen under the main Settings app,
+ * see apps/Phone/src/com/android/phone/Settings.java.
+ */
 public class CallFeaturesSetting extends PreferenceActivity
         implements DialogInterface.OnClickListener,
         Preference.OnPreferenceChangeListener,
@@ -86,6 +102,10 @@ public class CallFeaturesSetting extends PreferenceActivity
     // If the VM provider returns non null value in this extra we will force the user to
     // choose another VM provider
     public static final String SIGNOUT_EXTRA = "com.android.phone.Signout";
+    //Information about logical "up" Activity
+    private static final String UP_ACTIVITY_PACKAGE = "com.android.contacts";
+    private static final String UP_ACTIVITY_CLASS =
+            "com.android.contacts.activities.DialtactsActivity";
 
     // Used to tell the saving logic to leave forwarding number as is
     public static final CallForwardInfo[] FWD_SETTINGS_DONT_TOUCH = null;
@@ -118,10 +138,12 @@ public class CallFeaturesSetting extends PreferenceActivity
     private static final String NUM_PROJECTION[] = {CommonDataKinds.Phone.NUMBER};
 
     // String keys for preference lookup
+    // TODO: Naming these "BUTTON_*" is confusing since they're not actually buttons(!)
     private static final String BUTTON_VOICEMAIL_KEY = "button_voicemail_key";
     private static final String BUTTON_VOICEMAIL_PROVIDER_KEY = "button_voicemail_provider_key";
     private static final String BUTTON_VOICEMAIL_SETTING_KEY = "button_voicemail_setting_key";
     private static final String BUTTON_FDN_KEY   = "button_fdn_key";
+    private static final String BUTTON_RESPOND_VIA_SMS_KEY   = "button_respond_via_sms_key";
 
     private static final String BUTTON_DTMF_KEY   = "button_dtmf_settings";
     private static final String BUTTON_RETRY_KEY  = "button_auto_retry_key";
@@ -1345,7 +1367,7 @@ public class CallFeaturesSetting extends PreferenceActivity
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         if (DBG) log("Creating activity");
-        mPhone = PhoneFactory.getDefaultPhone();
+        mPhone = PhoneApp.getPhone();
 
         addPreferencesFromResource(R.xml.call_feature_setting);
 
@@ -1455,11 +1477,17 @@ public class CallFeaturesSetting extends PreferenceActivity
         updateVoiceNumberField();
         mVMProviderSettingsForced = false;
         createSipCallSettings();
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            // android.R.id.home will be triggered in onOptionsItemSelected()
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     private void createSipCallSettings() {
         // Add Internet call settings.
-        if (SipManager.isVoipSupported(this)) {
+        if (PhoneUtils.isVoipSupported()) {
             mSipManager = SipManager.newInstance(this);
             mSipSharedPreferences = new SipSharedPreferences(this);
             addPreferencesFromResource(R.xml.sip_settings_category);
@@ -1828,5 +1856,31 @@ public class CallFeaturesSetting extends PreferenceActivity
     private String getCurrentVoicemailProviderKey() {
         final String key = mVoicemailProviders.getValue();
         return (key != null) ? key : DEFAULT_VM_PROVIDER_KEY;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final int itemId = item.getItemId();
+        if (itemId == android.R.id.home) {  // See ActionBar#setDisplayHomeAsUpEnabled()
+            Intent intent = new Intent();
+            intent.setClassName(UP_ACTIVITY_PACKAGE, UP_ACTIVITY_CLASS);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Finish current Activity and go up to the top level Settings ({@link CallFeaturesSetting}).
+     * This is useful for implementing "HomeAsUp" capability for second-level Settings.
+     */
+    public static void goUpToTopLevelSetting(Activity activity) {
+        Intent intent = new Intent(activity, CallFeaturesSetting.class);
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        activity.startActivity(intent);
+        activity.finish();
     }
 }

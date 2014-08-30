@@ -20,9 +20,10 @@ import android.app.Activity;
 import android.app.Application;
 import android.app.KeyguardManager;
 import android.app.ProgressDialog;
-import android.app.StatusBarManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -46,10 +47,9 @@ import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 import android.provider.Settings.System;
 import android.telephony.ServiceState;
-import android.util.Config;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import com.android.internal.telephony.Call;
 import com.android.internal.telephony.CallManager;
@@ -58,9 +58,7 @@ import com.android.internal.telephony.MmiCode;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.TelephonyIntents;
-import com.android.internal.telephony.cdma.EriInfo;
 import com.android.internal.telephony.cdma.TtyIntent;
-import com.android.internal.telephony.sip.SipPhoneFactory;
 import com.android.phone.OtaUtils.CdmaOtaScreenState;
 import com.android.server.sip.SipService;
 
@@ -144,15 +142,19 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     // A few important fields we expose to the rest of the package
     // directly (rather than thru set/get methods) for efficiency.
     Phone phone;
+    CallController callController;
+    InCallUiState inCallUiState;
     CallNotifier notifier;
+    NotificationMgr notificationMgr;
     Ringer ringer;
     BluetoothHandsfree mBtHandsfree;
     PhoneInterfaceManager phoneMgr;
     CallManager mCM;
-    int mBluetoothHeadsetState = BluetoothHeadset.STATE_ERROR;
-    int mBluetoothHeadsetAudioState = BluetoothHeadset.STATE_ERROR;
+    int mBluetoothHeadsetState = BluetoothProfile.STATE_DISCONNECTED;
+    int mBluetoothHeadsetAudioState = BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
     boolean mShowBluetoothIndication = false;
     static int mDockState = Intent.EXTRA_DOCK_STATE_UNDOCKED;
+    static boolean sVoiceCapable = true;
 
     // Internal PhoneApp Call state tracker
     CdmaPhoneCallState cdmaPhoneCallState;
@@ -195,8 +197,6 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     private PowerManager.WakeLock mPartialWakeLock;
     private PowerManager.WakeLock mProximityWakeLock;
     private KeyguardManager mKeyguardManager;
-    private StatusBarManager mStatusBarManager;
-    private int mStatusBarDisableCount;
     private AccelerometerListener mAccelerometerListener;
     private int mOrientation = AccelerometerListener.ORIENTATION_UNKNOWN;
 
@@ -208,6 +208,15 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
     /** boolean indicating restoring mute state on InCallScreen.onResume() */
     private boolean mShouldRestoreMuteOnInCallResume;
+
+    /**
+     * The singleton OtaUtils instance used for OTASP calls.
+     *
+     * The OtaUtils instance is created lazily the first time we need to
+     * make an OTASP call, regardless of whether it's an interactive or
+     * non-interactive OTASP call.
+     */
+    public OtaUtils otaUtils;
 
     // Following are the CDMA OTA information Objects used during OTA Call.
     // cdmaOtaProvisionData object store static OTA information that needs
@@ -281,15 +290,15 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     // state change (since the status bar icon needs to
                     // turn blue when bluetooth is active.)
                     if (DBG) Log.d (LOG_TAG, "- updating in-call notification from handler...");
-                    NotificationMgr.getDefault().updateInCallNotification();
+                    notificationMgr.updateInCallNotification();
                     break;
 
                 case EVENT_DATA_ROAMING_DISCONNECTED:
-                    NotificationMgr.getDefault().showDataDisconnectedRoaming();
+                    notificationMgr.showDataDisconnectedRoaming();
                     break;
 
                 case EVENT_DATA_ROAMING_OK:
-                    NotificationMgr.getDefault().hideDataDisconnectedRoaming();
+                    notificationMgr.hideDataDisconnectedRoaming();
                     break;
 
                 case MMI_COMPLETE:
@@ -356,8 +365,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     // If the phone is docked/undocked during a call, and no wired or BT headset
                     // is connected: turn on/off the speaker accordingly.
                     boolean inDockMode = false;
-                    if (mDockState == Intent.EXTRA_DOCK_STATE_DESK ||
-                            mDockState == Intent.EXTRA_DOCK_STATE_CAR) {
+                    if (mDockState != Intent.EXTRA_DOCK_STATE_UNDOCKED) {
                         inDockMode = true;
                     }
                     if (VDBG) Log.d(LOG_TAG, "received EVENT_DOCK_STATE_CHANGED. Phone inDock = "
@@ -368,11 +376,9 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                             !isHeadsetPlugged() &&
                             !(mBtHandsfree != null && mBtHandsfree.isAudioOn())) {
                         PhoneUtils.turnOnSpeaker(getApplicationContext(), inDockMode, true);
-
-                        if (mInCallScreen != null) {
-                            mInCallScreen.requestUpdateTouchUi();
-                        }
+                        updateInCallScreen();  // Has no effect if the InCallScreen isn't visible
                     }
+                    break;
 
                 case EVENT_TTY_PREFERRED_MODE_CHANGED:
                     // TTY mode is only applied if a headset is connected
@@ -406,6 +412,16 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
         ContentResolver resolver = getContentResolver();
 
+        // Cache the "voice capable" flag.
+        // This flag currently comes from a resource (which is
+        // overrideable on a per-product basis):
+        sVoiceCapable =
+                getResources().getBoolean(com.android.internal.R.bool.config_voice_capable);
+        // ...but this might eventually become a PackageManager "system
+        // feature" instead, in which case we'd do something like:
+        // sVoiceCapable =
+        //   getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEPHONY_VOICE_CALLS);
+
         if (phone == null) {
             // Initialize the telephony framework
             PhoneFactory.makeDefaultPhones(this);
@@ -416,10 +432,11 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             mCM = CallManager.getInstance();
             mCM.registerPhone(phone);
 
+            // Create the NotificationMgr singleton, which is used to display
+            // status bar icons and control other status bar behavior.
+            notificationMgr = NotificationMgr.init(this);
 
-            NotificationMgr.init(this);
-
-            phoneMgr = new PhoneInterfaceManager(this, phone);
+            phoneMgr = PhoneInterfaceManager.init(this, phone);
 
             mHandler.sendEmptyMessage(EVENT_START_SIP_SERVICE);
 
@@ -432,14 +449,16 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             }
 
             if (BluetoothAdapter.getDefaultAdapter() != null) {
-                mBtHandsfree = new BluetoothHandsfree(this, mCM);
+                // Start BluetoothHandsree even if device is not voice capable.
+                // The device can still support VOIP.
+                mBtHandsfree = BluetoothHandsfree.init(this, mCM);
                 startService(new Intent(this, BluetoothHeadsetService.class));
             } else {
                 // Device is not bluetooth capable
                 mBtHandsfree = null;
             }
 
-            ringer = new Ringer(this);
+            ringer = Ringer.init(this);
 
             // before registering for phone state changes
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -463,14 +482,25 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             }
 
             mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            mStatusBarManager = (StatusBarManager) getSystemService(Context.STATUS_BAR_SERVICE);
 
             // get a handle to the service so that we can use it later when we
             // want to set the poke lock.
             mPowerManagerService = IPowerManager.Stub.asInterface(
                     ServiceManager.getService("power"));
 
-            notifier = new CallNotifier(this, phone, ringer, mBtHandsfree, new CallLogAsync());
+            // Create the CallController singleton, which is the interface
+            // to the telephony layer for user-initiated telephony functionality
+            // (like making outgoing calls.)
+            callController = CallController.init(this);
+            // ...and also the InCallUiState instance, used by the CallController to
+            // keep track of some "persistent state" of the in-call UI.
+            inCallUiState = InCallUiState.init(this);
+
+            // Create the CallNotifer singleton, which handles
+            // asynchronous events from the telephony layer (like
+            // launching the incoming-call UI when an incoming call comes
+            // in.)
+            notifier = CallNotifier.init(this, phone, ringer, mBtHandsfree, new CallLogAsync());
 
             // register for ICC status
             IccCard sim = phone.getIccCard();
@@ -491,7 +521,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             // Register for misc other intent broadcasts.
             IntentFilter intentFilter =
                     new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-            intentFilter.addAction(BluetoothHeadset.ACTION_STATE_CHANGED);
+            intentFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
             intentFilter.addAction(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
             intentFilter.addAction(TelephonyIntents.ACTION_ANY_DATA_CONNECTION_STATE_CHANGED);
             intentFilter.addAction(Intent.ACTION_HEADSET_PLUG);
@@ -531,9 +561,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             PhoneUtils.setAudioMode(mCM);
         }
 
-        boolean phoneIsCdma = (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA);
-
-        if (phoneIsCdma) {
+        if (TelephonyCapabilities.supportsOtasp(phone)) {
             cdmaOtaProvisionData = new OtaUtils.CdmaOtaProvisionData();
             cdmaOtaConfigData = new OtaUtils.CdmaOtaConfigData();
             cdmaOtaScreenState = new OtaUtils.CdmaOtaScreenState();
@@ -607,8 +635,16 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         return mBtHandsfree;
     }
 
-    static Intent createCallLogIntent() {
-        Intent  intent = new Intent(Intent.ACTION_VIEW, null);
+    /**
+     * Returns an Intent that can be used to go to the "Call log"
+     * UI (aka CallLogActivity) in the Contacts app.
+     *
+     * Watch out: there's no guarantee that the system has any activity to
+     * handle this intent.  (In particular there may be no "Call log" at
+     * all on on non-voice-capable devices.)
+     */
+    /* package */ static Intent createCallLogIntent() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, null);
         intent.setType("vnd.android.cursor.dir/calls");
         return intent;
     }
@@ -639,6 +675,9 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         return intent;
     }
 
+    // TODO(InCallScreen redesign): This should be made private once
+    // we fix PhoneInterfaceManager.java to *not* manually launch
+    // the InCallScreen from its call() method.
     static String getCallScreenClassName() {
         return InCallScreen.class.getName();
     }
@@ -646,9 +685,26 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     /**
      * Starts the InCallScreen Activity.
      */
-    private void displayCallScreen() {
+    /* package */ void displayCallScreen() {
         if (VDBG) Log.d(LOG_TAG, "displayCallScreen()...");
-        startActivity(createInCallIntent());
+
+        // On non-voice-capable devices we shouldn't ever be trying to
+        // bring up the InCallScreen in the first place.
+        if (!sVoiceCapable) {
+            Log.w(LOG_TAG, "displayCallScreen() not allowed: non-voice-capable device",
+                  new Throwable("stack dump"));  // Include a stack trace since this warning
+                                                 // indicates a bug in our caller
+            return;
+        }
+
+        try {
+            startActivity(createInCallIntent());
+        } catch (ActivityNotFoundException e) {
+            // It's possible that the in-call UI might not exist (like on
+            // non-voice-capable devices), so don't crash if someone
+            // accidentally tries to bring it up...
+            Log.w(LOG_TAG, "displayCallScreen: transition to InCallScreen failed: " + e);
+        }
         Profiler.callScreenRequested();
     }
 
@@ -693,9 +749,9 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
      * For OTA Call, it call InCallScreen api to handle OTA Call End scenario
      * to display OTA Call End screen.
      */
-    void dismissCallScreen() {
+    /* package */ void dismissCallScreen() {
         if (mInCallScreen != null) {
-            if ((phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) &&
+            if ((TelephonyCapabilities.supportsOtasp(phone)) &&
                     (mInCallScreen.isOtaCallInActiveState()
                     || mInCallScreen.isOtaCallInEndState()
                     || ((cdmaOtaScreenState != null)
@@ -718,21 +774,41 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     }
 
     /**
-     * Handle OTA events
+     * Handles OTASP-related events from the telephony layer.
      *
-     * When OTA call is active and display becomes dark, then CallNotifier will
-     * handle OTA Events by calling this api which then calls OtaUtil function.
+     * While an OTASP call is active, the CallNotifier forwards
+     * OTASP-related telephony events to this method.
      */
-    void handleOtaEvents(Message msg) {
+    void handleOtaspEvent(Message msg) {
+        if (DBG) Log.d(LOG_TAG, "handleOtaspEvent(message " + msg + ")...");
 
-        if (DBG) Log.d(LOG_TAG, "Enter handleOtaEvents");
-        if ((mInCallScreen != null) && (!isShowingCallScreen())) {
-            if (mInCallScreen.otaUtils != null) {
-                mInCallScreen.otaUtils.onOtaProvisionStatusChanged((AsyncResult) msg.obj);
-            }
+        if (otaUtils == null) {
+            // We shouldn't be getting OTASP events without ever
+            // having started the OTASP call in the first place!
+            Log.w(LOG_TAG, "handleOtaEvents: got an event but otaUtils is null! "
+                  + "message = " + msg);
+            return;
         }
+
+        otaUtils.onOtaProvisionStatusChanged((AsyncResult) msg.obj);
     }
 
+    /**
+     * Similarly, handle the disconnect event of an OTASP call
+     * by forwarding it to the OtaUtils instance.
+     */
+    /* package */ void handleOtaspDisconnect() {
+        if (DBG) Log.d(LOG_TAG, "handleOtaspDisconnect()...");
+
+        if (otaUtils == null) {
+            // We shouldn't be getting OTASP events without ever
+            // having started the OTASP call in the first place!
+            Log.w(LOG_TAG, "handleOtaspDisconnect: otaUtils is null!");
+            return;
+        }
+
+        otaUtils.onOtaspDisconnect();
+    }
 
     /**
      * Sets the activity responsible for un-PUK-blocking the device
@@ -769,42 +845,6 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
     ProgressDialog getPUKEntryProgressDialog() {
         return mPUKEntryProgressDialog;
-    }
-
-    /**
-     * Disables the status bar.  This is used by the phone app when in-call UI is active.
-     *
-     * Any call to this method MUST be followed (eventually)
-     * by a corresponding reenableStatusBar() call.
-     */
-    /* package */ void disableStatusBar() {
-        if (DBG) Log.d(LOG_TAG, "disable status bar");
-        synchronized (this) {
-            if (mStatusBarDisableCount++ == 0) {
-               if (DBG)  Log.d(LOG_TAG, "StatusBarManager.DISABLE_EXPAND");
-                mStatusBarManager.disable(StatusBarManager.DISABLE_EXPAND);
-            }
-        }
-    }
-
-    /**
-     * Re-enables the status bar after a previous disableStatusBar() call.
-     *
-     * Any call to this method MUST correspond to (i.e. be balanced with)
-     * a previous disableStatusBar() call.
-     */
-    /* package */ void reenableStatusBar() {
-        if (DBG) Log.d(LOG_TAG, "re-enable status bar");
-        synchronized (this) {
-            if (mStatusBarDisableCount > 0) {
-                if (--mStatusBarDisableCount == 0) {
-                    if (DBG) Log.d(LOG_TAG, "StatusBarManager.DISABLE_NONE");
-                    mStatusBarManager.disable(StatusBarManager.DISABLE_NONE);
-                }
-            } else {
-                Log.e(LOG_TAG, "mStatusBarDisableCount is already zero");
-            }
-        }
     }
 
     /**
@@ -854,7 +894,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         // regardless of the timeout duration.
         // The short timeout is really used whenever we want to give up
         // the screen lock, such as when we're in call.
-        int pokeLockSetting = LocalPowerManager.POKE_LOCK_IGNORE_CHEEK_EVENTS;
+        int pokeLockSetting = 0;
         switch (mScreenTimeoutDuration) {
             case SHORT:
                 // Set the poke lock to timeout the display after a short
@@ -882,7 +922,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         }
 
         if (mIgnoreTouchUserActivity) {
-            pokeLockSetting |= LocalPowerManager.POKE_LOCK_IGNORE_TOUCH_AND_CHEEK_EVENTS;
+            pokeLockSetting |= LocalPowerManager.POKE_LOCK_IGNORE_TOUCH_EVENTS;
         }
 
         // Send the request
@@ -1006,32 +1046,19 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         // Note that the "screen timeout" value we determine here is
         // meaningless if the screen is forced on (see (2) below.)
         //
-        if (!isShowingCallScreen || isSpeakerInUse) {
-            // Use the system-wide default timeout.
-            setScreenTimeout(ScreenTimeoutDuration.DEFAULT);
-        } else {
-            // We're on the in-call screen, and *not* using the speakerphone.
-            if (isDialerOpened) {
-                // The DTMF dialpad is up.  This case is special because
-                // the in-call UI has its own "touch lock" mechanism to
-                // disable the dialpad after a very short amount of idle
-                // time (to avoid false touches from the user's face while
-                // in-call.)
-                //
-                // In this case the *physical* screen just uses the
-                // system-wide default timeout.
-                setScreenTimeout(ScreenTimeoutDuration.DEFAULT);
-            } else {
-                // We're on the in-call screen, and not using the DTMF dialpad.
-                // There's actually no touchable UI onscreen at all in
-                // this state.  Also, the user is (most likely) not
-                // looking at the screen at all, since they're probably
-                // holding the phone up to their face.  Here we use a
-                // special screen timeout value specific to the in-call
-                // screen, purely to save battery life.
-                setScreenTimeout(ScreenTimeoutDuration.MEDIUM);
-            }
-        }
+
+        // Historical note: In froyo and earlier, we checked here for a special
+        // case: the in-call UI being active, the speaker off, and the DTMF dialpad
+        // not visible.  In that case, with no touchable UI onscreen at all (for
+        // non-prox-sensor devices at least), we could assume the user was probably
+        // holding the phone up to their face and *not* actually looking at the
+        // screen.  So we'd switch to a special screen timeout value
+        // (ScreenTimeoutDuration.MEDIUM), purely to save battery life.
+        //
+        // On current devices, we can rely on the proximity sensor to turn the
+        // screen off in this case, so we use the system-wide default timeout
+        // unconditionally.
+        setScreenTimeout(ScreenTimeoutDuration.DEFAULT);
 
         //
         // (2) Decide whether to force the screen on or not.
@@ -1089,10 +1116,10 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
 
     /**
      * Manually pokes the PowerManager's userActivity method.  Since we
-     * hold the POKE_LOCK_IGNORE_TOUCH_AND_CHEEK_EVENTS poke lock while
+     * hold the POKE_LOCK_IGNORE_TOUCH_EVENTS poke lock while
      * the InCallScreen is active, we need to do this for touch events
-     * that really do count as user activity (like DTMF key presses, or
-     * unlocking the "touch lock" overlay.)
+     * that really do count as user activity (like pressing any
+     * onscreen UI elements.)
      */
     /* package */ void pokeUserActivity() {
         if (VDBG) Log.d(LOG_TAG, "pokeUserActivity()...");
@@ -1247,11 +1274,12 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     private void initForNewRadioTechnology() {
         if (DBG) Log.d(LOG_TAG, "initForNewRadioTechnology...");
 
-        if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+         if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
             // Create an instance of CdmaPhoneCallState and initialize it to IDLE
             cdmaPhoneCallState = new CdmaPhoneCallState();
             cdmaPhoneCallState.CdmaPhoneCallStateInit();
-
+        }
+        if (TelephonyCapabilities.supportsOtasp(phone)) {
             //create instances of CDMA OTA data classes
             if (cdmaOtaProvisionData == null) {
                 cdmaOtaProvisionData = new OtaUtils.CdmaOtaProvisionData();
@@ -1369,7 +1397,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                 // case, bluetooth is considered "active" if a headset
                 // is connected *and* audio is being routed to it.
                 return ((bluetoothState == BluetoothHeadset.STATE_CONNECTED)
-                        && (bluetoothAudioState == BluetoothHeadset.AUDIO_STATE_CONNECTED));
+                        && (bluetoothAudioState == BluetoothHeadset.STATE_AUDIO_CONNECTED));
 
             case RINGING:
                 // If an incoming call is ringing, we're *not* yet routing
@@ -1396,16 +1424,16 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                 boolean enabled = System.getInt(getContentResolver(),
                         System.AIRPLANE_MODE_ON, 0) == 0;
                 phone.setRadioPower(enabled);
-            } else if (action.equals(BluetoothHeadset.ACTION_STATE_CHANGED)) {
+            } else if (action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)) {
                 mBluetoothHeadsetState = intent.getIntExtra(BluetoothHeadset.EXTRA_STATE,
-                                                            BluetoothHeadset.STATE_ERROR);
+                                                          BluetoothHeadset.STATE_DISCONNECTED);
                 if (VDBG) Log.d(LOG_TAG, "mReceiver: HEADSET_STATE_CHANGED_ACTION");
                 if (VDBG) Log.d(LOG_TAG, "==> new state: " + mBluetoothHeadsetState);
                 updateBluetoothIndication(true);  // Also update any visible UI if necessary
             } else if (action.equals(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED)) {
                 mBluetoothHeadsetAudioState =
-                        intent.getIntExtra(BluetoothHeadset.EXTRA_AUDIO_STATE,
-                                           BluetoothHeadset.STATE_ERROR);
+                        intent.getIntExtra(BluetoothHeadset.EXTRA_STATE,
+                                           BluetoothHeadset.STATE_AUDIO_DISCONNECTED);
                 if (VDBG) Log.d(LOG_TAG, "mReceiver: HEADSET_AUDIO_STATE_CHANGED_ACTION");
                 if (VDBG) Log.d(LOG_TAG, "==> new state: " + mBluetoothHeadsetAudioState);
                 updateBluetoothIndication(true);  // Also update any visible UI if necessary
@@ -1415,19 +1443,14 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                 if (VDBG) Log.d(LOG_TAG, "- reason: "
                                 + intent.getStringExtra(Phone.STATE_CHANGE_REASON_KEY));
 
-                // The "data disconnected due to roaming" notification is
-                // visible if you've lost data connectivity because you're
-                // roaming and you have the "data roaming" feature turned off.
-                boolean disconnectedDueToRoaming = false;
-                if ("DISCONNECTED".equals(intent.getStringExtra(Phone.STATE_KEY))) {
-                    String reason = intent.getStringExtra(Phone.STATE_CHANGE_REASON_KEY);
-                    if (Phone.REASON_ROAMING_ON.equals(reason)) {
-                        // We just lost our data connection, and the reason
-                        // is that we started roaming.  This implies that
-                        // the user has data roaming turned off.
-                        disconnectedDueToRoaming = true;
-                    }
-                }
+                // The "data disconnected due to roaming" notification is shown
+                // if (a) you have the "data roaming" feature turned off, and
+                // (b) you just lost data connectivity because you're roaming.
+                boolean disconnectedDueToRoaming =
+                        !phone.getDataRoamingEnabled()
+                        && "DISCONNECTED".equals(intent.getStringExtra(Phone.STATE_KEY))
+                        && Phone.REASON_ROAMING_ON.equals(
+                            intent.getStringExtra(Phone.STATE_CHANGE_REASON_KEY));
                 mHandler.sendEmptyMessage(disconnectedDueToRoaming
                                           ? EVENT_DATA_ROAMING_DISCONNECTED
                                           : EVENT_DATA_ROAMING_OK);
@@ -1455,7 +1478,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             } else if (action.equals(TelephonyIntents.ACTION_SERVICE_STATE_CHANGED)) {
                 handleServiceStateChanged(intent);
             } else if (action.equals(TelephonyIntents.ACTION_EMERGENCY_CALLBACK_MODE_CHANGED)) {
-                if (phone.getPhoneType() == Phone.PHONE_TYPE_CDMA) {
+                if (TelephonyCapabilities.supportsEcm(phone)) {
                     Log.d(LOG_TAG, "Emergency Callback Mode arrived in PhoneApp.");
                     // Start Emergency Callback Mode service
                     if (intent.getBooleanExtra("phoneinECMState", false)) {
@@ -1463,8 +1486,10 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                                 EmergencyCallbackModeService.class));
                     }
                 } else {
-                    Log.e(LOG_TAG, "Error! Emergency Callback Mode not supported for " +
-                            phone.getPhoneName() + " phones");
+                    // It doesn't make sense to get ACTION_EMERGENCY_CALLBACK_MODE_CHANGED
+                    // on a device that doesn't support ECM in the first place.
+                    Log.e(LOG_TAG, "Got ACTION_EMERGENCY_CALLBACK_MODE_CHANGED, "
+                          + "but ECM isn't supported for phone: " + phone.getPhoneName());
                 }
             } else if (action.equals(Intent.ACTION_DOCK_EVENT)) {
                 mDockState = intent.getIntExtra(Intent.EXTRA_DOCK_STATE,
@@ -1480,7 +1505,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
             } else if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION)) {
                 int ringerMode = intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE,
                         AudioManager.RINGER_MODE_NORMAL);
-                if(ringerMode == AudioManager.RINGER_MODE_SILENT) {
+                if (ringerMode == AudioManager.RINGER_MODE_SILENT) {
                     notifier.silenceRinger();
                 }
             }
@@ -1511,9 +1536,7 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     // If a headset is attached and the press is consumed, also update
                     // any UI items (such as an InCallScreen mute button) that may need to
                     // be updated if their state changed.
-                    if (isShowingCallScreen()) {
-                        updateInCallScreenTouchUi();
-                    }
+                    updateInCallScreen();  // Has no effect if the InCallScreen isn't visible
                     abortBroadcast();
                 }
             } else {
@@ -1540,21 +1563,9 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         // If service just returned, start sending out the queued messages
         ServiceState ss = ServiceState.newFromBundle(intent.getExtras());
 
-        boolean hasService = true;
-        boolean isCdma = false;
-        String eriText = "";
-
         if (ss != null) {
             int state = ss.getState();
-            NotificationMgr.getDefault().updateNetworkSelection(state);
-            switch (state) {
-                case ServiceState.STATE_OUT_OF_SERVICE:
-                case ServiceState.STATE_POWER_OFF:
-                    hasService = false;
-                    break;
-            }
-        } else {
-            hasService = false;
+            notificationMgr.updateNetworkSelection(state);
         }
     }
 
@@ -1580,8 +1591,8 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     public void clearOtaState() {
         if (DBG) Log.d(LOG_TAG, "- clearOtaState ...");
         if ((mInCallScreen != null)
-                && (mInCallScreen.otaUtils != null)) {
-            mInCallScreen.otaUtils.cleanOtaScreen(true);
+                && (otaUtils != null)) {
+            otaUtils.cleanOtaScreen(true);
             if (DBG) Log.d(LOG_TAG, "  - clearOtaState clears OTA screen");
         }
     }
@@ -1590,8 +1601,8 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
     public void dismissOtaDialogs() {
         if (DBG) Log.d(LOG_TAG, "- dismissOtaDialogs ...");
         if ((mInCallScreen != null)
-                && (mInCallScreen.otaUtils != null)) {
-            mInCallScreen.otaUtils.dismissAllOtaDialogs();
+                && (otaUtils != null)) {
+            otaUtils.dismissAllOtaDialogs();
             if (DBG) Log.d(LOG_TAG, "  - dismissOtaDialogs clears OTA dialogs");
         }
     }
@@ -1604,11 +1615,27 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
         }
     }
 
-    // Update InCallScreen's touch UI. It is safe to call even if InCallScreen isn't active
-    public void updateInCallScreenTouchUi() {
-        if (DBG) Log.d(LOG_TAG, "- updateInCallScreenTouchUi ...");
+    /**
+     * Force the in-call UI to refresh itself, if it's currently visible.
+     *
+     * This method can be used any time there's a state change anywhere in
+     * the phone app that needs to be reflected in the onscreen UI.
+     *
+     * Note that it's *not* necessary to manually refresh the in-call UI
+     * (via this method) for regular telephony state changes like
+     * DIALING -> ALERTING -> ACTIVE, since the InCallScreen already
+     * listens for those state changes itself.
+     *
+     * This method does *not* force the in-call UI to come up if it's not
+     * already visible.  To do that, use displayCallScreen().
+     */
+    /* package */ void updateInCallScreen() {
+        if (DBG) Log.d(LOG_TAG, "- updateInCallScreen()...");
         if (mInCallScreen != null) {
-            mInCallScreen.requestUpdateTouchUi();
+            // Post an updateScreen() request.  Note that the
+            // updateScreen() call will end up being a no-op if the
+            // InCallScreen isn't the foreground activity.
+            mInCallScreen.requestUpdateScreen();
         }
     }
 
@@ -1665,6 +1692,48 @@ public class PhoneApp extends Application implements AccelerometerListener.Orien
                     10*1000 /* 10 sec */);
         } catch (RemoteException ex) {
             // System process is dead.
+        }
+    }
+
+    /**
+     * "Call origin" may be used by Contacts app to specify where the phone call comes from.
+     * Currently, the only permitted value for this extra is {@link #ALLOWED_EXTRA_CALL_ORIGIN}.
+     * Any other value will be ignored, to make sure that malicious apps can't trick the in-call
+     * UI into launching some random other app after a call ends.
+     *
+     * TODO: make this more generic. Note that we should let the "origin" specify its package
+     * while we are now assuming it is "com.android.contacts"
+     */
+    public static final String EXTRA_CALL_ORIGIN = "com.android.phone.CALL_ORIGIN";
+    private static final String DEFAULT_CALL_ORIGIN_PACKAGE = "com.android.contacts";
+    private static final String ALLOWED_EXTRA_CALL_ORIGIN =
+            "com.android.contacts.activities.DialtactsActivity";
+
+    public void setLatestActiveCallOrigin(String callOrigin) {
+        inCallUiState.latestActiveCallOrigin = callOrigin;
+    }
+
+    /**
+     * @return Intent which will be used when in-call UI is shown and the phone call is hang up.
+     * By default CallLog screen will be introduced, but the destination may change depending on
+     * its latest call origin state.
+     */
+    public Intent createPhoneEndIntentUsingCallOrigin() {
+        if (TextUtils.equals(inCallUiState.latestActiveCallOrigin, ALLOWED_EXTRA_CALL_ORIGIN)) {
+            if (VDBG) Log.d(LOG_TAG, "Valid latestActiveCallOrigin("
+                    + inCallUiState.latestActiveCallOrigin + ") was found. "
+                    + "Go back to the previous screen.");
+            // Right now we just launch the Activity which launched in-call UI. Note that we're
+            // assuming the origin is from "com.android.contacts", which may be incorrect in the
+            // future.
+            final Intent intent = new Intent();
+            intent.setClassName(DEFAULT_CALL_ORIGIN_PACKAGE, inCallUiState.latestActiveCallOrigin);
+            return intent;
+        } else {
+            if (VDBG) Log.d(LOG_TAG, "Current latestActiveCallOrigin ("
+                    + inCallUiState.latestActiveCallOrigin + ") is not valid. "
+                    + "Just use CallLog as a default destination.");
+            return PhoneApp.createCallLogIntent();
         }
     }
 }

@@ -36,6 +36,8 @@ import java.util.ArrayList;
  * This is really a thin wrapper around Linear Layout that intercepts
  * some user interactions to provide the correct UI behaviour for the
  * dialer.
+ *
+ * See dtmf_twelve_key_dialer_view.xml.
  */
 class DTMFTwelveKeyDialerView extends LinearLayout {
 
@@ -43,7 +45,7 @@ class DTMFTwelveKeyDialerView extends LinearLayout {
     private static final boolean DBG = false;
 
     private DTMFTwelveKeyDialer mDialer;
-    private ButtonGridLayout mButtonGrid;
+
 
     public DTMFTwelveKeyDialerView (Context context) {
         super(context);
@@ -55,7 +57,6 @@ class DTMFTwelveKeyDialerView extends LinearLayout {
 
     void setDialer (DTMFTwelveKeyDialer dialer) {
         mDialer = dialer;
-        mButtonGrid = (ButtonGridLayout)findViewById(R.id.dialpad);
     }
 
     /**
@@ -80,18 +81,7 @@ class DTMFTwelveKeyDialerView extends LinearLayout {
         return super.dispatchKeyEvent(event);
     }
 
-    /**
-     * Set the background of all the dialpad keys. Typically a selector to
-     * change the background based on some combination of the
-     * attributes.
-     * @param resid Is a resource id to be used for each button's background.
-     */
-    public void setKeysBackgroundResource(int resid) {
-        mButtonGrid.setChildrenBackgroundResource(resid);
-    }
-
     private void log(String msg) {
         Log.d(LOG_TAG, msg);
     }
-
 }

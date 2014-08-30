@@ -17,27 +17,27 @@
 package com.android.phone;
 
 import android.accounts.Account;
+import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.Groups;
-import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -58,6 +58,10 @@ import java.util.ArrayList;
  */
 public class SimContacts extends ADNList {
     private static final String LOG_TAG = "SimContacts";
+
+    private static final String UP_ACTIVITY_PACKAGE = "com.android.contacts";
+    private static final String UP_ACTIVITY_CLASS =
+            "com.android.contacts.activities.PeopleActivity";
 
     static final ContentValues sEmptyContentValues = new ContentValues();
 
@@ -130,11 +134,6 @@ public class SimContacts extends ADNList {
         }
     }
 
-    // From HardCodedSources.java in Contacts app.
-    // TODO: fix this.
-    private static final String ACCOUNT_TYPE_GOOGLE = "com.google";
-    private static final String GOOGLE_MY_CONTACTS_GROUP = "System Group: My Contacts";
-
     private static void actuallyImportOneSimContact(
             final Cursor cursor, final ContentResolver resolver, Account account) {
         final NamePhoneTypePair namePhoneTypePair =
@@ -158,23 +157,6 @@ public class SimContacts extends ADNList {
         if (account != null) {
             builder.withValue(RawContacts.ACCOUNT_NAME, account.name);
             builder.withValue(RawContacts.ACCOUNT_TYPE, account.type);
-
-            // TODO: temporal fix for "My Groups" issue. Need to be refactored.
-            if (ACCOUNT_TYPE_GOOGLE.equals(account.type)) {
-                final Cursor tmpCursor = resolver.query(Groups.CONTENT_URI, new String[] {
-                        Groups.SOURCE_ID },
-                        Groups.TITLE + "=?", new String[] {
-                        GOOGLE_MY_CONTACTS_GROUP }, null);
-                try {
-                    if (tmpCursor != null && tmpCursor.moveToFirst()) {
-                        myGroupsId = tmpCursor.getString(0);
-                    }
-                } finally {
-                    if (tmpCursor != null) {
-                        tmpCursor.close();
-                    }
-                }
-            }
         } else {
             builder.withValues(sEmptyContentValues);
         }
@@ -247,6 +229,12 @@ public class SimContacts extends ADNList {
         }
 
         registerForContextMenu(getListView());
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            // android.R.id.home will be triggered in onOptionsItemSelected()
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -285,12 +273,24 @@ public class SimContacts extends ADNList {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent intent = new Intent();
+                intent.setClassName(UP_ACTIVITY_PACKAGE, UP_ACTIVITY_CLASS);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+                return true;
             case MENU_IMPORT_ALL:
                 CharSequence title = getString(R.string.importAllSimEntries);
                 CharSequence message = getString(R.string.importingSimContacts);
 
                 ImportAllSimContactsThread thread = new ImportAllSimContactsThread();
 
+                // TODO: need to show some error dialog.
+                if (mCursor == null) {
+                    Log.e(LOG_TAG, "cursor is null. Ignore silently.");
+                    break;
+                }
                 mProgressDialog = new ProgressDialog(this);
                 mProgressDialog.setTitle(title);
                 mProgressDialog.setMessage(message);
@@ -298,9 +298,7 @@ public class SimContacts extends ADNList {
                 mProgressDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
                         getString(R.string.cancel), thread);
                 mProgressDialog.setProgress(0);
-                if (mCursor != null) {
-                    mProgressDialog.setMax(mCursor.getCount());
-                }
+                mProgressDialog.setMax(mCursor.getCount());
                 mProgressDialog.show();
 
                 thread.start();
@@ -355,7 +353,7 @@ public class SimContacts extends ADNList {
                         return true;
                     }
                     Intent intent = new Intent(Intent.ACTION_CALL_PRIVILEGED,
-                            Uri.fromParts("tel", phoneNumber, null));
+                            Uri.fromParts(Constants.SCHEME_TEL, phoneNumber, null));
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                                           | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                     startActivity(intent);

@@ -16,12 +16,10 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="contactsIconLabel" msgid="9129800048701196916">"Kontakti"</string>
-    <string name="contactsFavoritesLabel" msgid="5360050972935451505">"Favoriti"</string>
-    <string name="dialerIconLabel" msgid="1761864493312440268">"Biranje"</string>
+    <string name="phoneAppLabel" product="tablet" msgid="8576272342240415145">"Mobilni podaci"</string>
+    <string name="phoneAppLabel" product="default" msgid="906161039445636857">"Telefon"</string>
     <string name="emergencyDialerIconLabel" msgid="7812140032168171053">"Birač hitnih poziva"</string>
     <string name="phoneIconLabel" msgid="2331230813161304895">"Telefon"</string>
-    <string name="recentCallsIconLabel" msgid="8717350893637245164">"Zapisnik poziva"</string>
     <string name="fdnListLabel" msgid="8630418672279521003">"Popis FDN-a"</string>
     <string name="unknown" msgid="6878797917991465859">"Nepoznato"</string>
     <string name="private_num" msgid="6713286113000232309">"Privatni broj"</string>
@@ -52,7 +50,7 @@
     <string name="callFailed_cdma_reorder" msgid="5605791471418711552">"CDMA: snimač."</string>
     <string name="callFailed_cdma_SO_reject" msgid="8969174256492763555">"CDMA: Odbačena je opcija usluge."</string>
     <string name="callFailed_cdma_retryOrder" msgid="5848488692485148804">"CDMA: ponovi narudžbu."</string>
-    <string name="callFailed_cdma_accessFailure" msgid="2844306027616452215">"CDMA: Pogreška pristupa."</string>
+    <string name="callFailed_cdma_accessFailure" msgid="715977130417624962">"CDMA: pristup nije uspio."</string>
     <string name="callFailed_cdma_preempted" msgid="1097095321180029879">"CDMA: unaprijed ispražnjeno."</string>
     <string name="callFailed_cdma_notEmergency" msgid="2347377816822720761">"Mogući su samo hitni pozivi."</string>
     <string name="callFailed_unobtainable_number" msgid="7886274717456712105">"Nevažeći broj"</string>
@@ -60,28 +58,16 @@
     <string name="call_lost" msgid="317670617901479594">"Poziv je prekinut."</string>
     <string name="retry" msgid="8462986804300767852">"Pokušaj ponovo"</string>
     <string name="call_lost_title" msgid="6696949678847938515">"Poziv je prekinut"</string>
+    <string name="ok" msgid="3811371167865772377">"U redu"</string>
     <string name="mmiStarted" msgid="6347869857061147003">"Pokrenut je MMI kôd"</string>
     <string name="ussdRunning" msgid="485588686340541690">"Pokrenut je USSD kôd…"</string>
     <string name="mmiCancelled" msgid="2771923949751842276">"Otkazan je MMI kôd"</string>
     <string name="cancel" msgid="5044513931633602634">"Odustani"</string>
-    <string name="menu_speaker" msgid="6069700688651964705">"Zvučnik"</string>
-    <string name="menu_bluetooth" msgid="8842523654717305695">"Bluetooth"</string>
-    <string name="menu_mute" msgid="4399723633363773145">"Isključi zvuk"</string>
-    <string name="menu_hold" msgid="6970441130344786273">"Na čekanju"</string>
-    <string name="menu_endCall" msgid="2142958047156634241">"Prekid poziva"</string>
-    <string name="menu_swapCalls" msgid="1548647524816600795">"Zamijeni pozive"</string>
-    <string name="menu_mergeCalls" msgid="6414754941392181303">"Spoji pozive"</string>
-    <string name="menu_addCall" msgid="7829255032442131930">"Dodaj poziv"</string>
-    <string name="menu_manageConference" msgid="3770984362002266733">"Upravljaj konferencijskim pozivom"</string>
-    <string name="menu_showDialpad" msgid="5198200217528406980">"Prikaži površinu za biranje brojeva"</string>
-    <string name="menu_hideDialpad" msgid="2733813546746296771">"Sakrij površinu za biranje brojeva"</string>
-    <string name="menu_answerAndHold" msgid="8830891495953688905">"Zadrži trenutačni poziv"\n"i odgovori"</string>
-    <string name="menu_answerAndEnd" msgid="2071708281281611854">"Prekini trenutačni poziv"\n"i odgovori"</string>
-    <string name="ok" msgid="3811371167865772377">"U redu"</string>
-    <string name="menuButtonHint" msgid="4853215496220101699">"Pritisnite Izbornik za opcije poziva."</string>
-    <string name="menuButtonKeyboardDialHint" msgid="2869270434715312458">"Pritisnite izbornik za opcije poziva  •  Za biranje koristite tipkovnicu"</string>
-    <string name="menu_answer" msgid="116686205042231098">"Odgovor"</string>
-    <string name="menu_ignore" msgid="2112030835852537344">"Zanemari"</string>
+    <string name="manageConferenceLabel" msgid="4691922394301969053">"Upravljanje konferencijskim pozivom"</string>
+    <string name="audio_mode_speaker" msgid="27649582100085266">"Zvučnik"</string>
+    <string name="audio_mode_earpiece" msgid="4156527186373869107">"Slušalice"</string>
+    <string name="audio_mode_wired_headset" msgid="1465350758489175975">"Žičane slušalice"</string>
+    <string name="audio_mode_bluetooth" msgid="3047641300848211128">"Bluetooth"</string>
     <string name="wait_prompt_str" msgid="7601815427707856238">"Poslati sljedeće tonove?"\n</string>
     <string name="pause_prompt_str" msgid="341477243019906241">"Slanje tonova"\n</string>
     <string name="send_button" msgid="4106860097497818751">"Pošalji"</string>
@@ -174,7 +160,7 @@
     <string name="vm_changed" msgid="380744030726254139">"Broj govorne pošte je promijenjen."</string>
     <string name="vm_change_failed" msgid="6912718596496220653">"Promjena broja govorne pošte bila je neuspješna."\n"Kontaktirajte mobilnog operatera ako se taj problem ne riješi."</string>
     <string name="fw_change_failed" msgid="4437005899675054038">"Preusmjeravanje broja govorne pošte bilo je neuspješno."\n"Kontaktirajte mobilnog operatera ako se taj problem ne riješi."</string>
-    <string name="fw_get_in_vm_failed" msgid="6776365552098929353">"Nije uspjelo dohvaćanje i spremanje trenutačnih postavki preusmjeravanja broja."\n"Želite li se ipak prebaciti na novog davatelja usluge?"</string>
+    <string name="fw_get_in_vm_failed" msgid="8862896836093833973">"Dohvaćanje i spremanje trenutačnih postavki broja za prosljeđivanje nije uspjelo."\n"Želite li se ipak prebaciti na novog davatelja usluge?"</string>
     <string name="no_change" msgid="3186040086622435212">"Nisu izvršene nikakve promjene."</string>
     <string name="sum_voicemail_choose_provider" msgid="59911196126278922">"Odaberite uslugu govorne pošte"</string>
     <string name="voicemail_default" msgid="5902099213882352338">"Moj mobilni operater"</string>
@@ -196,8 +182,17 @@
     <string name="preferred_network_mode_title" msgid="8873246565334559308">"Način mreže"</string>
     <string name="preferred_network_mode_summary" msgid="1434820673166126609">"Promijenite način rada mreže"</string>
     <string name="preferred_network_mode_dialogtitle" msgid="8176355237105593793">"Način željene mreže"</string>
+    <string name="preferred_network_mode_wcdma_perf_summary" msgid="8521677230113533809">"Način željene mreže: Preferirano WCDMA"</string>
+    <string name="preferred_network_mode_gsm_only_summary" msgid="3352445413437453511">"Način željene mreže: Samo GSM"</string>
+    <string name="preferred_network_mode_wcdma_only_summary" msgid="2836897236221063413">"Način željene mreže: Samo WCDMA"</string>
+    <string name="preferred_network_mode_gsm_wcdma_summary" msgid="3161255745326408587">"Način željene mreže: GSM/WCDMA"</string>
+    <string name="preferred_network_mode_cdma_summary" msgid="3175690187294334241">"Način željene mreže: CDMA"</string>
+    <string name="preferred_network_mode_cdma_evdo_summary" msgid="8332063064712726618">"Način željene mreže: CDMA / EvDo"</string>
+    <string name="preferred_network_mode_cdma_only_summary" msgid="1309770926198634150">"Način željene mreže: Samo CDMA"</string>
+    <string name="preferred_network_mode_evdo_only_summary" msgid="8472220691721269155">"Način željene mreže: Samo EvDo"</string>
+    <string name="preferred_network_mode_lte_cdma_summary" msgid="3722647806454528426">"Način željene mreže: LTE/CDMA"</string>
   <string-array name="preferred_network_mode_choices">
-    <item msgid="2987674222882365152">"Cijeli svijet"</item>
+    <item msgid="5886604709726177211">"LTE/CDMA"</item>
     <item msgid="3273348576277144124">"Samo EvDo"</item>
     <item msgid="454610224530856274">"CDMA sa/bez EvDo"</item>
     <item msgid="8928247118825616081">"CDMA / EvDo automatski"</item>
@@ -206,15 +201,9 @@
     <item msgid="5714714953966979187">"Samo GSM"</item>
     <item msgid="4775796025725908913">"Preporučeno GSM/WCDMA"</item>
   </string-array>
-  <string-array name="preferred_network_mode_values">
-    <item msgid="7164534877603905916">"7"</item>
-    <item msgid="2520921432080278213">"6"</item>
-    <item msgid="4978887990900575049">"5"</item>
-    <item msgid="6891436459357445885">"4"</item>
-    <item msgid="339825043192186272">"3"</item>
-    <item msgid="3062641619893382241">"2"</item>
-    <item msgid="2494009747968041784">"1"</item>
-    <item msgid="2568449734331711605">"0"</item>
+  <string-array name="preferred_network_mode_choices_lte">
+    <item msgid="7345284701413565429">"LTE/CDMA"</item>
+    <item msgid="5541716989029928208">"CDMA"</item>
   </string-array>
     <string name="data_enabled" msgid="5972538663568715366">"Podaci su omogućeni"</string>
     <string name="data_enable_summary" msgid="5022018967714633874">"Omogući podatkovni pristup preko mobilne mreže"</string>
@@ -386,6 +375,8 @@
     <item msgid="7494167883478914080">"0"</item>
     <item msgid="6043847456049107742">"1"</item>
   </string-array>
+    <string name="cdma_activate_device" msgid="3793805892364814518">"Aktivacija uređaja"</string>
+    <string name="cdma_lte_data_service" msgid="4255018217292548962">"Postavljanje podatkovne usluge"</string>
     <string name="fdn" msgid="7878832555095183202">"Brojevi za fiksno biranje"</string>
     <string name="manage_fdn_list" msgid="8777755791892122369">"Popis FDN-a"</string>
     <string name="fdn_activation" msgid="2156479741307463576">"Aktivacija FDN-a"</string>
@@ -428,6 +419,7 @@
     <string name="simContacts_emptyLoading" msgid="2203331234764498011">"Čitanje sa SIM kartice…"</string>
     <string name="simContacts_empty" msgid="5270660846489561932">"Nema kontakata na vašoj SIM kartici."</string>
     <string name="simContacts_title" msgid="1861472842524839921">"Odaberite kontakte za uvoz"</string>
+    <string name="simContacts_airplaneMode" msgid="8221701142387137660">"Za uvoz kontakata sa SIM kartice isključite način rada u zrakoplovu."</string>
     <string name="enable_pin" msgid="5422767284133234860">"Omogući/onemogući PIN za SIM"</string>
     <string name="change_pin" msgid="9174186126330785343">"Promijeni PIN za SIM"</string>
     <string name="enter_pin_text" msgid="8532615714751931951">"PIN za SIM:"</string>
@@ -469,7 +461,6 @@
     <string name="voicemail_settings_number_label" msgid="8524164258691887790">"Broj govorne pošte"</string>
     <string name="card_title_dialing" msgid="5769417478498348054">"Biranje broja"</string>
     <string name="card_title_redialing" msgid="4831412164303596395">"Ponovni pokušaj"</string>
-    <string name="card_title_in_progress" msgid="8603765629781648862">"Trenutačni poziv"</string>
     <string name="card_title_conf_call" msgid="1162980346189744501">"Konferencijski poziv"</string>
     <string name="card_title_incoming_call" msgid="7364539451234646909">"Dolazni poziv"</string>
     <string name="card_title_cdma_call_waiting" msgid="4532445524811272644">"Čekanje na cdma poziv"</string>
@@ -513,10 +504,6 @@
     <string name="dial_emergency_empty_error" msgid="5048645338094088229">"Poziv nije poslan, birajte hitan poziv!"</string>
     <string name="dialerKeyboardHintText" msgid="9192914825413747792">"Birajte pomoću tipkovnice"</string>
     <string name="dtmfDialpadHintText" msgid="2153335217920679451">"Tipkovnica za dodirni zvuk"</string>
-    <string name="dtmfDialpadHandleLabel" msgid="6077872154488117962">"Površina za biranje brojeva"</string>
-    <string name="touchLockText" msgid="566824588267376287">"Dvaput dotaknite"\n"za otključavanje"</string>
-    <string name="onscreenAnswerText" msgid="3000799558804019765">"Dvaput dotaknite"\n"za odgovor"</string>
-    <string name="onscreenRejectText" msgid="1456649473993020449">"Dvaput dotaknite"\n"za odbijanje"</string>
     <string name="onscreenHoldText" msgid="2285258239691145872">"Na čekanju"</string>
     <string name="onscreenUnholdText" msgid="5033582269005230794">"Više nije na čekanju"</string>
     <string name="onscreenEndCallText" msgid="4403855834875398585">"Kraj"</string>
@@ -529,7 +516,8 @@
     <string name="onscreenMergeCallsText" msgid="6640195098064538950">"Spoji pozive"</string>
     <string name="onscreenSwapCallsText" msgid="1602990689244030047">"Zamijeni"</string>
     <string name="onscreenManageCallsText" msgid="5473231160123254154">"Upravljaj pozivima"</string>
-    <string name="onscreenManageConferenceText" msgid="6952581578445378981">"Upravljaj"</string>
+    <string name="onscreenManageConferenceText" msgid="6485935856534311346">"Upravljanje konferencijom"</string>
+    <string name="onscreenAudioText" msgid="1710087112800041743">"Zvuk"</string>
     <string name="importSimEntry" msgid="6614358325359736031">"Uvezi"</string>
     <string name="importAllSimEntries" msgid="1503181169636198673">"Uvezi sve"</string>
     <string name="importingSimContacts" msgid="7374056215462575769">"Uvoz SIM kontakata"</string>
@@ -656,11 +644,11 @@
     <string name="registration_status_not_receiving" msgid="5011399017106466965">"Ne prima pozive"</string>
     <string name="registration_status_no_data" msgid="8279587001454092132">"Registracija računa zaustavila se jer nema internetske veze"</string>
     <string name="registration_status_no_wifi_data" msgid="6698550648571450078">"Registracija računa zaustavila se jer nema Wi-Fi veze"</string>
-    <string name="registration_status_not_running" msgid="272678962440371182">"Registracija računa nije uspjela"</string>
+    <string name="registration_status_not_running" msgid="3826034902272084289">"Registracija računa nije uspjela"</string>
     <string name="registration_status_done" msgid="6434927607037752239">"Primanje poziva"</string>
-    <string name="registration_status_failed_try_later" msgid="3045686593819835879">"Registracija računa nije uspjela: (<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>); pokušat ćemo kasnije"</string>
-    <string name="registration_status_invalid_credentials" msgid="1830368411591265203">"Registracija računa nije uspjela: netočno korisničko ime ili zaporka"</string>
-    <string name="registration_status_server_unreachable" msgid="8173553259218123653">"Registracija računa nije uspjela: provjerite naziv poslužitelja"</string>
+    <string name="registration_status_failed_try_later" msgid="5214474354451220581">"Registracija računa nije uspjela: (<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>); pokušat ćemo kasnije"</string>
+    <string name="registration_status_invalid_credentials" msgid="85887803757211092">"Registracija računa nije uspjela: netočno korisničko ime ili zaporka"</string>
+    <string name="registration_status_server_unreachable" msgid="9138794150602726009">"Registracija računa nije uspjela: provjerite naziv poslužitelja"</string>
     <string name="third_party_account_summary" msgid="1069915789382987226">"Ovaj račun trenutačno upotrebljava aplikacija <xliff:g id="ACCOUNT_OWNER">%s</xliff:g>"</string>
     <string name="sip_edit_title" msgid="489288416435014385">"Detalji SIP računa"</string>
     <string name="sip_edit_new_title" msgid="3659149255856520385">"Detalji SIP računa"</string>
@@ -692,4 +680,37 @@
     <string name="no_internet_available" msgid="1100564991026313234">"Za obavljanje internetskog poziva prvo provjerite internetsku vezu"</string>
     <string name="no_wifi_available" msgid="3389743006886634541">"Morate se povezati s Wi-Fi mrežom za internetske pozive (upotrijebite postavke Bežično povezivanje &amp; Mreža)"</string>
     <string name="no_voip" msgid="8901474054537199865">"Internetski pozivi nisu podržani"</string>
+    <string name="sip_system_decide" msgid="368030746310423471">"Automatski"</string>
+    <string name="sip_always_send_keepalive" msgid="8192080724632877132">"Uvijek šalji"</string>
+    <string name="not_voice_capable" msgid="2739898841461577811">"Glasovni pozivi nisu podržani"</string>
+    <string name="respond_via_sms_canned_response_1" msgid="2461606462788380215">"Sada ne mogu razgovarati. Što ima?"</string>
+    <string name="respond_via_sms_canned_response_2" msgid="4074450431532859214">"Nazvat ću vas odmah."</string>
+    <string name="respond_via_sms_canned_response_3" msgid="3496079065723960450">"Zvat ću vas kasnije."</string>
+    <string name="respond_via_sms_canned_response_4" msgid="1698989243040062190">"Sada ne mogu razgovarati. Nazovite me kasnije?"</string>
+    <string name="respond_via_sms_custom_message" msgid="4911568567889429624">"Prilagođena poruka..."</string>
+    <string name="respond_via_sms_setting_title" msgid="3754000371039709383">"Brzi odgovori"</string>
+    <string name="respond_via_sms_setting_title_2" msgid="6104662227299493906">"Uređivanje brzih odgovora"</string>
+    <string name="respond_via_sms_setting_summary" msgid="9150281183930613065"></string>
+    <string name="respond_via_sms_edittext_dialog_title" msgid="20379890418289778">"Brzi odgovor"</string>
+    <string name="respond_via_sms_confirmation_format" msgid="7229149977515784269">"Poruka poslana na broj <xliff:g id="PHONE_NUMBER">%s</xliff:g>."</string>
+    <string name="description_image_button_one" msgid="5502718871331943463">"jedan"</string>
+    <string name="description_image_button_two" msgid="4903738528222924522">"dva"</string>
+    <string name="description_image_button_three" msgid="5570985408463782329">"tri"</string>
+    <string name="description_image_button_four" msgid="1697520001239289074">"četiri"</string>
+    <string name="description_image_button_five" msgid="3450276493026943454">"pet"</string>
+    <string name="description_image_button_six" msgid="2070376172268675300">"šest"</string>
+    <string name="description_image_button_seven" msgid="1757351311199993371">"sedam"</string>
+    <string name="description_image_button_eight" msgid="4734693919020613227">"osam"</string>
+    <string name="description_image_button_nine" msgid="5568534122590597040">"devet"</string>
+    <string name="description_image_button_star" msgid="1976280813017254462">"zvjezdica"</string>
+    <string name="description_image_button_zero" msgid="4211255756866893605">"nula"</string>
+    <string name="description_image_button_pound" msgid="1716041284529917866">"funta"</string>
+    <string name="description_search_button" msgid="239929880630534731">"pretraži"</string>
+    <string name="description_dial_button" msgid="7459705245418435351">"biraj"</string>
+    <string name="description_delete_button" msgid="4015842181592283903">"backspace"</string>
+    <string name="accessibility_speakerphone_enabled" msgid="1988512040421036359">"Zvučnik je omogućen."</string>
+    <string name="accessibility_call_muted" msgid="2776111226185342220">"Zvuk poziva isključen."</string>
+    <string name="description_target_answer" msgid="7205604197797472471">"Odgovori"</string>
+    <string name="description_target_send_sms" msgid="2098326025587950144">"Pošalji SMS"</string>
+    <string name="description_target_decline" msgid="4789834364389731957">"Odbij"</string>
 </resources>

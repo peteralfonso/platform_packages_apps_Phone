@@ -16,12 +16,10 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="contactsIconLabel" msgid="9129800048701196916">"联系人"</string>
-    <string name="contactsFavoritesLabel" msgid="5360050972935451505">"收藏"</string>
-    <string name="dialerIconLabel" msgid="1761864493312440268">"拨号器"</string>
+    <string name="phoneAppLabel" product="tablet" msgid="8576272342240415145">"移动数据"</string>
+    <string name="phoneAppLabel" product="default" msgid="906161039445636857">"手机"</string>
     <string name="emergencyDialerIconLabel" msgid="7812140032168171053">"紧急拨号器"</string>
     <string name="phoneIconLabel" msgid="2331230813161304895">"电话"</string>
-    <string name="recentCallsIconLabel" msgid="8717350893637245164">"通话记录"</string>
     <string name="fdnListLabel" msgid="8630418672279521003">"固定拨号列表"</string>
     <string name="unknown" msgid="6878797917991465859">"未知"</string>
     <string name="private_num" msgid="6713286113000232309">"私人号码"</string>
@@ -52,7 +50,7 @@
     <string name="callFailed_cdma_reorder" msgid="5605791471418711552">"CDMA：重新排序。"</string>
     <string name="callFailed_cdma_SO_reject" msgid="8969174256492763555">"CDMA：服务选项拒绝。"</string>
     <string name="callFailed_cdma_retryOrder" msgid="5848488692485148804">"CDMA：重拨顺序。"</string>
-    <string name="callFailed_cdma_accessFailure" msgid="2844306027616452215">"CDMA：无法接入。"</string>
+    <string name="callFailed_cdma_accessFailure" msgid="715977130417624962">"CDMA：接入失败。"</string>
     <string name="callFailed_cdma_preempted" msgid="1097095321180029879">"CDMA：优先抢占。"</string>
     <string name="callFailed_cdma_notEmergency" msgid="2347377816822720761">"只能拨打紧急呼救电话。"</string>
     <string name="callFailed_unobtainable_number" msgid="7886274717456712105">"号码无效"</string>
@@ -60,28 +58,16 @@
     <string name="call_lost" msgid="317670617901479594">"通话已中断。"</string>
     <string name="retry" msgid="8462986804300767852">"重拨"</string>
     <string name="call_lost_title" msgid="6696949678847938515">"通话中断"</string>
+    <string name="ok" msgid="3811371167865772377">"确定"</string>
     <string name="mmiStarted" msgid="6347869857061147003">"MMI 码已启动"</string>
     <string name="ussdRunning" msgid="485588686340541690">"正在运行 USSD 代码..."</string>
     <string name="mmiCancelled" msgid="2771923949751842276">"MMI 码已取消"</string>
     <string name="cancel" msgid="5044513931633602634">"取消"</string>
-    <string name="menu_speaker" msgid="6069700688651964705">"免提"</string>
-    <string name="menu_bluetooth" msgid="8842523654717305695">"蓝牙"</string>
-    <string name="menu_mute" msgid="4399723633363773145">"静音"</string>
-    <string name="menu_hold" msgid="6970441130344786273">"保持"</string>
-    <string name="menu_endCall" msgid="2142958047156634241">"结束通话"</string>
-    <string name="menu_swapCalls" msgid="1548647524816600795">"交换通话"</string>
-    <string name="menu_mergeCalls" msgid="6414754941392181303">"合并通话"</string>
-    <string name="menu_addCall" msgid="7829255032442131930">"添加通话"</string>
-    <string name="menu_manageConference" msgid="3770984362002266733">"管理电话会议"</string>
-    <string name="menu_showDialpad" msgid="5198200217528406980">"显示拨号键盘"</string>
-    <string name="menu_hideDialpad" msgid="2733813546746296771">"隐藏拨号键盘"</string>
-    <string name="menu_answerAndHold" msgid="8830891495953688905">"保持当前通话"\n"并接听"</string>
-    <string name="menu_answerAndEnd" msgid="2071708281281611854">"结束当前通话"\n"并接听"</string>
-    <string name="ok" msgid="3811371167865772377">"确定"</string>
-    <string name="menuButtonHint" msgid="4853215496220101699">"按 MENU 可以选择通话选项。"</string>
-    <string name="menuButtonKeyboardDialHint" msgid="2869270434715312458">"按 MENU 可以选择通话选项 • 使用键盘拨号"</string>
-    <string name="menu_answer" msgid="116686205042231098">"接听"</string>
-    <string name="menu_ignore" msgid="2112030835852537344">"忽略"</string>
+    <string name="manageConferenceLabel" msgid="4691922394301969053">"管理电话会议"</string>
+    <string name="audio_mode_speaker" msgid="27649582100085266">"扬声器"</string>
+    <string name="audio_mode_earpiece" msgid="4156527186373869107">"手机听筒"</string>
+    <string name="audio_mode_wired_headset" msgid="1465350758489175975">"有线耳机"</string>
+    <string name="audio_mode_bluetooth" msgid="3047641300848211128">"蓝牙"</string>
     <string name="wait_prompt_str" msgid="7601815427707856238">"发送以下音频？"\n</string>
     <string name="pause_prompt_str" msgid="341477243019906241">"正在发送双音频"\n</string>
     <string name="send_button" msgid="4106860097497818751">"发送"</string>
@@ -111,7 +97,7 @@
     <string name="meid" msgid="66004808679046045">"MEID"</string>
     <string name="labelGSMMore" msgid="5930842194056092106">"GSM 通话设置"</string>
     <string name="labelCDMAMore" msgid="1630676740428229339">"CDMA 通话设置"</string>
-    <string name="apn_settings" msgid="9043423184895642077">"接入点名称"</string>
+    <string name="apn_settings" msgid="9043423184895642077">"接入点名称 (APN)"</string>
     <string name="settings_label" msgid="3876743539816984008">"网络设置"</string>
     <string name="voicemail" msgid="8693759337917898954">"语音信箱"</string>
     <string name="voicemail_abbreviated" msgid="2215592488517217448">"语音信箱："</string>
@@ -174,7 +160,7 @@
     <string name="vm_changed" msgid="380744030726254139">"语音信箱号码已更改。"</string>
     <string name="vm_change_failed" msgid="6912718596496220653">"语音信箱号码更改失败。"\n"如果问题依然存在，请与您的运营商联系。"</string>
     <string name="fw_change_failed" msgid="4437005899675054038">"转接号码更改失败。"\n"如果问题依然存在，请与您的运营商联系。"</string>
-    <string name="fw_get_in_vm_failed" msgid="6776365552098929353">"检索和保存当前转接号码设置失败。"\n"您仍然想要切换到新的服务提供商吗？"</string>
+    <string name="fw_get_in_vm_failed" msgid="8862896836093833973">"无法检索和保存当前转接号码设置。"\n"仍然要切换到新的服务提供商吗？"</string>
     <string name="no_change" msgid="3186040086622435212">"未做任何更改。"</string>
     <string name="sum_voicemail_choose_provider" msgid="59911196126278922">"选择语音信箱服务"</string>
     <string name="voicemail_default" msgid="5902099213882352338">"我的运营商"</string>
@@ -196,8 +182,17 @@
     <string name="preferred_network_mode_title" msgid="8873246565334559308">"网络模式"</string>
     <string name="preferred_network_mode_summary" msgid="1434820673166126609">"更改网络运行方式"</string>
     <string name="preferred_network_mode_dialogtitle" msgid="8176355237105593793">"首选网络模式"</string>
+    <string name="preferred_network_mode_wcdma_perf_summary" msgid="8521677230113533809">"首选网络模式：首选 WCDMA"</string>
+    <string name="preferred_network_mode_gsm_only_summary" msgid="3352445413437453511">"首选网络模式：仅限 GSM"</string>
+    <string name="preferred_network_mode_wcdma_only_summary" msgid="2836897236221063413">"首选网络模式：仅限 WCDMA"</string>
+    <string name="preferred_network_mode_gsm_wcdma_summary" msgid="3161255745326408587">"首选网络模式：GSM/WCDMA"</string>
+    <string name="preferred_network_mode_cdma_summary" msgid="3175690187294334241">"首选网络模式：CDMA"</string>
+    <string name="preferred_network_mode_cdma_evdo_summary" msgid="8332063064712726618">"首选网络模式：CDMA/EvDo"</string>
+    <string name="preferred_network_mode_cdma_only_summary" msgid="1309770926198634150">"首选网络模式：仅限 CDMA"</string>
+    <string name="preferred_network_mode_evdo_only_summary" msgid="8472220691721269155">"首选网络模式：仅限 EvDo"</string>
+    <string name="preferred_network_mode_lte_cdma_summary" msgid="3722647806454528426">"首选网络模式：LTE/CDMA"</string>
   <string-array name="preferred_network_mode_choices">
-    <item msgid="2987674222882365152">"全球"</item>
+    <item msgid="5886604709726177211">"LTE/CDMA"</item>
     <item msgid="3273348576277144124">"仅 EvDo"</item>
     <item msgid="454610224530856274">"CDMA，无 EvDo 功能"</item>
     <item msgid="8928247118825616081">"CDMA/EvDo 自动选择"</item>
@@ -206,18 +201,12 @@
     <item msgid="5714714953966979187">"仅 GSM"</item>
     <item msgid="4775796025725908913">"首选 GSM/WCDMA"</item>
   </string-array>
-  <string-array name="preferred_network_mode_values">
-    <item msgid="7164534877603905916">"7"</item>
-    <item msgid="2520921432080278213">"6"</item>
-    <item msgid="4978887990900575049">"5"</item>
-    <item msgid="6891436459357445885">"4"</item>
-    <item msgid="339825043192186272">"3"</item>
-    <item msgid="3062641619893382241">"2"</item>
-    <item msgid="2494009747968041784">"1"</item>
-    <item msgid="2568449734331711605">"0"</item>
+  <string-array name="preferred_network_mode_choices_lte">
+    <item msgid="7345284701413565429">"LTE/CDMA"</item>
+    <item msgid="5541716989029928208">"CDMA"</item>
   </string-array>
-    <string name="data_enabled" msgid="5972538663568715366">"已启用数据"</string>
-    <string name="data_enable_summary" msgid="5022018967714633874">"启用移动网络的数据访问功能"</string>
+    <string name="data_enabled" msgid="5972538663568715366">"已启用数据流量"</string>
+    <string name="data_enable_summary" msgid="5022018967714633874">"允许通过移动网络存取数据"</string>
     <string name="roaming" msgid="8871412572928323707">"数据漫游"</string>
     <string name="roaming_enable" msgid="7331106985174381987">"漫游时连接到数据服务"</string>
     <string name="roaming_disable" msgid="1843417228755568110">"漫游时连接到数据服务"</string>
@@ -225,7 +214,7 @@
     <string name="roaming_warning" msgid="7820963598559553967">"是否允许数据漫游？这可能产生大量漫游费！"</string>
     <string name="gsm_umts_options" msgid="6538311689850981686">"GSM/UMTS 选项"</string>
     <string name="cdma_options" msgid="4016822858172249884">"CDMA 选项"</string>
-    <string name="throttle_data_usage" msgid="3715677828160555808">"数据使用情况"</string>
+    <string name="throttle_data_usage" msgid="3715677828160555808">"流量使用情况"</string>
     <string name="throttle_settings_title" msgid="2761975408383706589">"运营商流量政策"</string>
     <string name="throttle_current_usage" msgid="8762280193043815361">"当前时段使用的数据"</string>
     <string name="throttle_time_frame" msgid="1915198770363734685">"数据使用时段"</string>
@@ -346,7 +335,7 @@
     <string name="cdma_system_select_summary" msgid="2528661990595284707">"更改 CDMA 漫游模式"</string>
     <string name="cdma_system_select_dialogtitle" msgid="6083355415165359075">"系统选择"</string>
   <string-array name="cdma_system_select_choices">
-    <item msgid="176474317493999285">"仅本网"</item>
+    <item msgid="176474317493999285">"仅本地系统"</item>
     <item msgid="1205664026446156265">"自动"</item>
   </string-array>
     <string name="cdma_roaming_mode_title" msgid="6366737033053855198">"CDMA 漫游模式"</string>
@@ -386,6 +375,8 @@
     <item msgid="7494167883478914080">"0"</item>
     <item msgid="6043847456049107742">"1"</item>
   </string-array>
+    <string name="cdma_activate_device" msgid="3793805892364814518">"激活设备"</string>
+    <string name="cdma_lte_data_service" msgid="4255018217292548962">"设置数据服务"</string>
     <string name="fdn" msgid="7878832555095183202">"固定拨号"</string>
     <string name="manage_fdn_list" msgid="8777755791892122369">"固定拨号列表"</string>
     <string name="fdn_activation" msgid="2156479741307463576">"激活固定拨号"</string>
@@ -428,6 +419,7 @@
     <string name="simContacts_emptyLoading" msgid="2203331234764498011">"正在从 SIM 卡读取..."</string>
     <string name="simContacts_empty" msgid="5270660846489561932">"SIM 卡上无联系人。"</string>
     <string name="simContacts_title" msgid="1861472842524839921">"选择要导入的联系人"</string>
+    <string name="simContacts_airplaneMode" msgid="8221701142387137660">"要从 SIM 卡导入联系人，请先关闭飞行模式。"</string>
     <string name="enable_pin" msgid="5422767284133234860">"启用/禁用 SIM 卡 PIN"</string>
     <string name="change_pin" msgid="9174186126330785343">"更改 SIM 卡 PIN"</string>
     <string name="enter_pin_text" msgid="8532615714751931951">"SIM 卡 PIN："</string>
@@ -469,7 +461,6 @@
     <string name="voicemail_settings_number_label" msgid="8524164258691887790">"语音信箱号码"</string>
     <string name="card_title_dialing" msgid="5769417478498348054">"正在拨号"</string>
     <string name="card_title_redialing" msgid="4831412164303596395">"正在重拨"</string>
-    <string name="card_title_in_progress" msgid="8603765629781648862">"当前通话"</string>
     <string name="card_title_conf_call" msgid="1162980346189744501">"电话会议"</string>
     <string name="card_title_incoming_call" msgid="7364539451234646909">"来电"</string>
     <string name="card_title_cdma_call_waiting" msgid="4532445524811272644">"CDMA 来电等待"</string>
@@ -513,10 +504,6 @@
     <string name="dial_emergency_empty_error" msgid="5048645338094088229">"电话未拨出，请拨打紧急呼救电话！"</string>
     <string name="dialerKeyboardHintText" msgid="9192914825413747792">"使用键盘拨号"</string>
     <string name="dtmfDialpadHintText" msgid="2153335217920679451">"按键式键盘"</string>
-    <string name="dtmfDialpadHandleLabel" msgid="6077872154488117962">"拨号键盘"</string>
-    <string name="touchLockText" msgid="566824588267376287">"轻击两下"\n"解锁"</string>
-    <string name="onscreenAnswerText" msgid="3000799558804019765">"点按两次"\n"可接听"</string>
-    <string name="onscreenRejectText" msgid="1456649473993020449">"点按两次"\n"可拒绝"</string>
     <string name="onscreenHoldText" msgid="2285258239691145872">"等待"</string>
     <string name="onscreenUnholdText" msgid="5033582269005230794">"恢复"</string>
     <string name="onscreenEndCallText" msgid="4403855834875398585">"挂断"</string>
@@ -529,7 +516,8 @@
     <string name="onscreenMergeCallsText" msgid="6640195098064538950">"合并通话"</string>
     <string name="onscreenSwapCallsText" msgid="1602990689244030047">"交换"</string>
     <string name="onscreenManageCallsText" msgid="5473231160123254154">"管理通话"</string>
-    <string name="onscreenManageConferenceText" msgid="6952581578445378981">"管理"</string>
+    <string name="onscreenManageConferenceText" msgid="6485935856534311346">"管理会议"</string>
+    <string name="onscreenAudioText" msgid="1710087112800041743">"音频"</string>
     <string name="importSimEntry" msgid="6614358325359736031">"导入"</string>
     <string name="importAllSimEntries" msgid="1503181169636198673">"全部导入"</string>
     <string name="importingSimContacts" msgid="7374056215462575769">"正在导入 SIM 联系人"</string>
@@ -656,11 +644,11 @@
     <string name="registration_status_not_receiving" msgid="5011399017106466965">"不接听电话"</string>
     <string name="registration_status_no_data" msgid="8279587001454092132">"由于未连接至互联网，帐户注册已停止"</string>
     <string name="registration_status_no_wifi_data" msgid="6698550648571450078">"因无 Wi-Fi 连接，已停止注册帐户。"</string>
-    <string name="registration_status_not_running" msgid="272678962440371182">"帐户注册失败"</string>
+    <string name="registration_status_not_running" msgid="3826034902272084289">"帐户注册失败"</string>
     <string name="registration_status_done" msgid="6434927607037752239">"接听电话"</string>
-    <string name="registration_status_failed_try_later" msgid="3045686593819835879">"帐户注册失败：（<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>）；系统会在稍后重试"</string>
-    <string name="registration_status_invalid_credentials" msgid="1830368411591265203">"帐户注册失败：用户名或密码不正确"</string>
-    <string name="registration_status_server_unreachable" msgid="8173553259218123653">"帐户注册失败：请检查服务器名称"</string>
+    <string name="registration_status_failed_try_later" msgid="5214474354451220581">"帐户注册失败：（<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>）；系统会在稍后重试"</string>
+    <string name="registration_status_invalid_credentials" msgid="85887803757211092">"帐户注册失败：用户名或密码不正确"</string>
+    <string name="registration_status_server_unreachable" msgid="9138794150602726009">"帐户注册失败：请检查服务器名称"</string>
     <string name="third_party_account_summary" msgid="1069915789382987226">"<xliff:g id="ACCOUNT_OWNER">%s</xliff:g> 应用程序当前正在使用该帐户"</string>
     <string name="sip_edit_title" msgid="489288416435014385">"SIP 帐户详情"</string>
     <string name="sip_edit_new_title" msgid="3659149255856520385">"SIP 帐户详情"</string>
@@ -692,4 +680,37 @@
     <string name="no_internet_available" msgid="1100564991026313234">"要拨打互联网电话，请先检查互联网连接情况"</string>
     <string name="no_wifi_available" msgid="3389743006886634541">"您必须连接到 Wi-Fi 网络才能使用互联网电话（使用“无线和网络设置”）"</string>
     <string name="no_voip" msgid="8901474054537199865">"不支持互联网电话"</string>
+    <string name="sip_system_decide" msgid="368030746310423471">"自动"</string>
+    <string name="sip_always_send_keepalive" msgid="8192080724632877132">"一律发送"</string>
+    <string name="not_voice_capable" msgid="2739898841461577811">"不支持语音呼叫"</string>
+    <string name="respond_via_sms_canned_response_1" msgid="2461606462788380215">"现在无法接听。有什么事吗？"</string>
+    <string name="respond_via_sms_canned_response_2" msgid="4074450431532859214">"我马上会打给你。"</string>
+    <string name="respond_via_sms_canned_response_3" msgid="3496079065723960450">"我稍后会再打给你。"</string>
+    <string name="respond_via_sms_canned_response_4" msgid="1698989243040062190">"现在无法接听。能稍后再打给我吗？"</string>
+    <string name="respond_via_sms_custom_message" msgid="4911568567889429624">"自定义短信..."</string>
+    <string name="respond_via_sms_setting_title" msgid="3754000371039709383">"快速回复"</string>
+    <string name="respond_via_sms_setting_title_2" msgid="6104662227299493906">"修改快速回复"</string>
+    <string name="respond_via_sms_setting_summary" msgid="9150281183930613065"></string>
+    <string name="respond_via_sms_edittext_dialog_title" msgid="20379890418289778">"快速回复"</string>
+    <string name="respond_via_sms_confirmation_format" msgid="7229149977515784269">"讯息已发送至 <xliff:g id="PHONE_NUMBER">%s</xliff:g>。"</string>
+    <string name="description_image_button_one" msgid="5502718871331943463">"一"</string>
+    <string name="description_image_button_two" msgid="4903738528222924522">"二"</string>
+    <string name="description_image_button_three" msgid="5570985408463782329">"三"</string>
+    <string name="description_image_button_four" msgid="1697520001239289074">"四"</string>
+    <string name="description_image_button_five" msgid="3450276493026943454">"五"</string>
+    <string name="description_image_button_six" msgid="2070376172268675300">"六"</string>
+    <string name="description_image_button_seven" msgid="1757351311199993371">"七"</string>
+    <string name="description_image_button_eight" msgid="4734693919020613227">"八"</string>
+    <string name="description_image_button_nine" msgid="5568534122590597040">"九"</string>
+    <string name="description_image_button_star" msgid="1976280813017254462">"星标"</string>
+    <string name="description_image_button_zero" msgid="4211255756866893605">"零"</string>
+    <string name="description_image_button_pound" msgid="1716041284529917866">"英镑"</string>
+    <string name="description_search_button" msgid="239929880630534731">"搜索"</string>
+    <string name="description_dial_button" msgid="7459705245418435351">"拨号"</string>
+    <string name="description_delete_button" msgid="4015842181592283903">"Backspace 键"</string>
+    <string name="accessibility_speakerphone_enabled" msgid="1988512040421036359">"扬声器已启用。"</string>
+    <string name="accessibility_call_muted" msgid="2776111226185342220">"通话已静音。"</string>
+    <string name="description_target_answer" msgid="7205604197797472471">"接听"</string>
+    <string name="description_target_send_sms" msgid="2098326025587950144">"发送短信"</string>
+    <string name="description_target_decline" msgid="4789834364389731957">"拒绝"</string>
 </resources>

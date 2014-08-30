@@ -18,19 +18,21 @@ package com.android.phone.sip;
 
 import com.android.internal.telephony.CallManager;
 import com.android.internal.telephony.Phone;
+import com.android.phone.CallFeaturesSetting;
 import com.android.phone.R;
 import com.android.phone.SipUtil;
 
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.net.sip.SipException;
 import android.net.sip.SipErrorCode;
-import android.net.sip.SipProfile;
+import android.net.sip.SipException;
 import android.net.sip.SipManager;
+import android.net.sip.SipProfile;
 import android.net.sip.SipRegistrationListener;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -40,14 +42,10 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
-import android.preference.PreferenceScreen;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 
 import java.io.IOException;
@@ -62,6 +60,8 @@ import java.util.Map;
  */
 public class SipSettings extends PreferenceActivity {
     public static final String SIP_SHARED_PREFERENCES = "SIP_PREFERENCES";
+
+    private static final int MENU_ADD_ACCOUNT = Menu.FIRST;
 
     static final String KEY_SIP_PROFILE = "sip_profile";
 
@@ -79,7 +79,6 @@ public class SipSettings extends PreferenceActivity {
 
     private SipProfile mProfile; // profile that's being edited
 
-    private Button mButtonAddSipAccount;
     private CheckBoxPreference mButtonSipReceiveCalls;
     private PreferenceCategory mSipListContainer;
     private Map<String, SipPreference> mSipPreferenceMap;
@@ -153,11 +152,16 @@ public class SipSettings extends PreferenceActivity {
         setContentView(R.layout.sip_settings_ui);
         addPreferencesFromResource(R.xml.sip_setting);
         mSipListContainer = (PreferenceCategory) findPreference(PREF_SIP_LIST);
-        registerForAddSipListener();
         registerForReceiveCallsCheckBox();
         mCallManager = CallManager.getInstance();
 
         updateProfilesStatus();
+
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            // android.R.id.home will be triggered in onOptionsItemSelected()
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -165,10 +169,8 @@ public class SipSettings extends PreferenceActivity {
         super.onResume();
 
         if (mCallManager.getState() != Phone.State.IDLE) {
-            mButtonAddSipAccount.setEnabled(false);
             mButtonSipReceiveCalls.setEnabled(false);
         } else {
-            mButtonAddSipAccount.setEnabled(true);
             mButtonSipReceiveCalls.setEnabled(true);
         }
     }
@@ -201,17 +203,6 @@ public class SipSettings extends PreferenceActivity {
                 Log.v(TAG, "Can not handle the profile : " + e.getMessage());
             }
         }}.start();
-    }
-
-    private void registerForAddSipListener() {
-        mButtonAddSipAccount =
-                (Button) findViewById(R.id.add_remove_account_button);
-        mButtonAddSipAccount.setOnClickListener(
-                new android.view.View.OnClickListener() {
-                    public void onClick(View v) {
-                        startSipEditor(null);
-                    }
-                });
     }
 
     private void registerForReceiveCallsCheckBox() {
@@ -477,5 +468,35 @@ public class SipSettings extends PreferenceActivity {
                 }
             }
         };
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, MENU_ADD_ACCOUNT, 0, R.string.add_sip_account)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(MENU_ADD_ACCOUNT).setEnabled(mCallManager.getState() == Phone.State.IDLE);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final int itemId = item.getItemId();
+        switch (itemId) {
+            case android.R.id.home: {
+                CallFeaturesSetting.goUpToTopLevelSetting(this);
+                return true;
+            }
+            case MENU_ADD_ACCOUNT: {
+                startSipEditor(null);
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

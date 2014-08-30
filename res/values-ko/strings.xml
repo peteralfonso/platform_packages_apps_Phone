@@ -16,12 +16,10 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="contactsIconLabel" msgid="9129800048701196916">"주소록"</string>
-    <string name="contactsFavoritesLabel" msgid="5360050972935451505">"즐겨찾기"</string>
-    <string name="dialerIconLabel" msgid="1761864493312440268">"다이얼러"</string>
+    <string name="phoneAppLabel" product="tablet" msgid="8576272342240415145">"모바일 데이터"</string>
+    <string name="phoneAppLabel" product="default" msgid="906161039445636857">"휴대전화"</string>
     <string name="emergencyDialerIconLabel" msgid="7812140032168171053">"긴급 통화"</string>
     <string name="phoneIconLabel" msgid="2331230813161304895">"휴대전화"</string>
-    <string name="recentCallsIconLabel" msgid="8717350893637245164">"통화기록"</string>
     <string name="fdnListLabel" msgid="8630418672279521003">"FDN 목록"</string>
     <string name="unknown" msgid="6878797917991465859">"알 수 없음"</string>
     <string name="private_num" msgid="6713286113000232309">"비공개 번호"</string>
@@ -52,7 +50,7 @@
     <string name="callFailed_cdma_reorder" msgid="5605791471418711552">"CDMA: 순서를 재지정합니다."</string>
     <string name="callFailed_cdma_SO_reject" msgid="8969174256492763555">"CDMA: 서비스 옵션이 거부되었습니다."</string>
     <string name="callFailed_cdma_retryOrder" msgid="5848488692485148804">"CDMA: 명령을 다시 시도합니다."</string>
-    <string name="callFailed_cdma_accessFailure" msgid="2844306027616452215">"CDMA: 액세스에 실패했습니다."</string>
+    <string name="callFailed_cdma_accessFailure" msgid="715977130417624962">"CDMA: 액세스하지 못했습니다."</string>
     <string name="callFailed_cdma_preempted" msgid="1097095321180029879">"CDMA: 선 점유되었습니다."</string>
     <string name="callFailed_cdma_notEmergency" msgid="2347377816822720761">"긴급 통화만 가능합니다."</string>
     <string name="callFailed_unobtainable_number" msgid="7886274717456712105">"잘못된 번호"</string>
@@ -60,28 +58,16 @@
     <string name="call_lost" msgid="317670617901479594">"통화가 끊겼습니다."</string>
     <string name="retry" msgid="8462986804300767852">"다시 시도"</string>
     <string name="call_lost_title" msgid="6696949678847938515">"통화 끊김"</string>
+    <string name="ok" msgid="3811371167865772377">"확인"</string>
     <string name="mmiStarted" msgid="6347869857061147003">"MMI 코드 시작됨"</string>
     <string name="ussdRunning" msgid="485588686340541690">"USSD 코드 실행 중..."</string>
     <string name="mmiCancelled" msgid="2771923949751842276">"MMI 코드 취소됨"</string>
     <string name="cancel" msgid="5044513931633602634">"취소"</string>
-    <string name="menu_speaker" msgid="6069700688651964705">"스피커"</string>
-    <string name="menu_bluetooth" msgid="8842523654717305695">"Bluetooth"</string>
-    <string name="menu_mute" msgid="4399723633363773145">"음소거"</string>
-    <string name="menu_hold" msgid="6970441130344786273">"보류"</string>
-    <string name="menu_endCall" msgid="2142958047156634241">"통화 종료"</string>
-    <string name="menu_swapCalls" msgid="1548647524816600795">"통화 전환"</string>
-    <string name="menu_mergeCalls" msgid="6414754941392181303">"통화 합치기"</string>
-    <string name="menu_addCall" msgid="7829255032442131930">"통화 추가"</string>
-    <string name="menu_manageConference" msgid="3770984362002266733">"다자간 통화 관리"</string>
-    <string name="menu_showDialpad" msgid="5198200217528406980">"다이얼패드 표시"</string>
-    <string name="menu_hideDialpad" msgid="2733813546746296771">"다이얼패드 숨기기"</string>
-    <string name="menu_answerAndHold" msgid="8830891495953688905">"현재 통화를 보류하고"\n" 전화받기"</string>
-    <string name="menu_answerAndEnd" msgid="2071708281281611854">"현재 통화를 끊고"\n" 전화받기"</string>
-    <string name="ok" msgid="3811371167865772377">"확인"</string>
-    <string name="menuButtonHint" msgid="4853215496220101699">"통화 옵션을 보려면 \'메뉴\'를 누르세요."</string>
-    <string name="menuButtonKeyboardDialHint" msgid="2869270434715312458">"통화 옵션을 보려면 메뉴를 누르세요.  •  키보드를 사용하여 전화걸기"</string>
-    <string name="menu_answer" msgid="116686205042231098">"응답"</string>
-    <string name="menu_ignore" msgid="2112030835852537344">"무시"</string>
+    <string name="manageConferenceLabel" msgid="4691922394301969053">"다자간 통화 관리"</string>
+    <string name="audio_mode_speaker" msgid="27649582100085266">"스피커"</string>
+    <string name="audio_mode_earpiece" msgid="4156527186373869107">"무선 이어폰"</string>
+    <string name="audio_mode_wired_headset" msgid="1465350758489175975">"유선 헤드셋"</string>
+    <string name="audio_mode_bluetooth" msgid="3047641300848211128">"블루투스"</string>
     <string name="wait_prompt_str" msgid="7601815427707856238">"다음 톤을 보내시겠습니까?"\n</string>
     <string name="pause_prompt_str" msgid="341477243019906241">"신호음 보내기"\n</string>
     <string name="send_button" msgid="4106860097497818751">"전송"</string>
@@ -174,7 +160,7 @@
     <string name="vm_changed" msgid="380744030726254139">"음성사서함 번호가 변경되었습니다."</string>
     <string name="vm_change_failed" msgid="6912718596496220653">"음성사서함 번호를 변경하지 못했습니다."\n"문제가 계속되면 이동통신사에 문의하세요."</string>
     <string name="fw_change_failed" msgid="4437005899675054038">"착신전환할 번호를 변경하지 못했습니다."\n"문제가 계속되면 이동통신사에 문의하세요."</string>
-    <string name="fw_get_in_vm_failed" msgid="6776365552098929353">"현재 착신전환할 번호를 검색하고 저장하는 데 실패했습니다."\n"새로운 통신사로 전환하시겠습니까?"</string>
+    <string name="fw_get_in_vm_failed" msgid="8862896836093833973">"현재 착신전환 번호 설정을 검색하고 저장하지 못했습니다."\n"그래도 새로운 통신사로 전환하시겠습니까?"</string>
     <string name="no_change" msgid="3186040086622435212">"변경사항이 없습니다."</string>
     <string name="sum_voicemail_choose_provider" msgid="59911196126278922">"음성사서함 서비스 선택"</string>
     <string name="voicemail_default" msgid="5902099213882352338">"내 이동통신사"</string>
@@ -196,8 +182,17 @@
     <string name="preferred_network_mode_title" msgid="8873246565334559308">"네트워크 모드"</string>
     <string name="preferred_network_mode_summary" msgid="1434820673166126609">"네트워크 작동 모드 변경"</string>
     <string name="preferred_network_mode_dialogtitle" msgid="8176355237105593793">"기본 설정된 네트워크 모드"</string>
+    <string name="preferred_network_mode_wcdma_perf_summary" msgid="8521677230113533809">"기본 네트워크 모드: WCDMA 선호"</string>
+    <string name="preferred_network_mode_gsm_only_summary" msgid="3352445413437453511">"기본 네트워크 모드: GSM 전용"</string>
+    <string name="preferred_network_mode_wcdma_only_summary" msgid="2836897236221063413">"기본 네트워크 모드: WCDMA 전용"</string>
+    <string name="preferred_network_mode_gsm_wcdma_summary" msgid="3161255745326408587">"기본 네트워크 모드: GSM/WCDMA"</string>
+    <string name="preferred_network_mode_cdma_summary" msgid="3175690187294334241">"기본 설정된 네트워크 모드: CDMA"</string>
+    <string name="preferred_network_mode_cdma_evdo_summary" msgid="8332063064712726618">"기본 설정된 네트워크 모드: CDMA / EvDo"</string>
+    <string name="preferred_network_mode_cdma_only_summary" msgid="1309770926198634150">"기본 네트워크 모드: CDMA 전용"</string>
+    <string name="preferred_network_mode_evdo_only_summary" msgid="8472220691721269155">"기본 네트워크 모드: EvDo 전용"</string>
+    <string name="preferred_network_mode_lte_cdma_summary" msgid="3722647806454528426">"기본 네트워크 모드: LTE/CDMA"</string>
   <string-array name="preferred_network_mode_choices">
-    <item msgid="2987674222882365152">"글로벌"</item>
+    <item msgid="5886604709726177211">"LTE/CDMA"</item>
     <item msgid="3273348576277144124">"EvDo 전용"</item>
     <item msgid="454610224530856274">"EvDo없는 CDMA"</item>
     <item msgid="8928247118825616081">"CDMA/EvDo 자동"</item>
@@ -206,15 +201,9 @@
     <item msgid="5714714953966979187">"GSM 전용"</item>
     <item msgid="4775796025725908913">"GSM/WCDMA로 기본 설정"</item>
   </string-array>
-  <string-array name="preferred_network_mode_values">
-    <item msgid="7164534877603905916">"7"</item>
-    <item msgid="2520921432080278213">"6"</item>
-    <item msgid="4978887990900575049">"5"</item>
-    <item msgid="6891436459357445885">"4"</item>
-    <item msgid="339825043192186272">"3"</item>
-    <item msgid="3062641619893382241">"2"</item>
-    <item msgid="2494009747968041784">"1"</item>
-    <item msgid="2568449734331711605">"0"</item>
+  <string-array name="preferred_network_mode_choices_lte">
+    <item msgid="7345284701413565429">"LTE/CDMA"</item>
+    <item msgid="5541716989029928208">"CDMA"</item>
   </string-array>
     <string name="data_enabled" msgid="5972538663568715366">"데이터 사용"</string>
     <string name="data_enable_summary" msgid="5022018967714633874">"모바일 네트워크에서 데이터 액세스 사용"</string>
@@ -386,6 +375,8 @@
     <item msgid="7494167883478914080">"0"</item>
     <item msgid="6043847456049107742">"1"</item>
   </string-array>
+    <string name="cdma_activate_device" msgid="3793805892364814518">"기기 활성화"</string>
+    <string name="cdma_lte_data_service" msgid="4255018217292548962">"데이터 서비스 설정"</string>
     <string name="fdn" msgid="7878832555095183202">"발신 허용 번호"</string>
     <string name="manage_fdn_list" msgid="8777755791892122369">"FDN 목록"</string>
     <string name="fdn_activation" msgid="2156479741307463576">"FDN 활성화"</string>
@@ -428,6 +419,7 @@
     <string name="simContacts_emptyLoading" msgid="2203331234764498011">"SIM 카드에서 읽는 중..."</string>
     <string name="simContacts_empty" msgid="5270660846489561932">"SIM 카드에 주소록이 없습니다."</string>
     <string name="simContacts_title" msgid="1861472842524839921">"가져올 주소록 선택"</string>
+    <string name="simContacts_airplaneMode" msgid="8221701142387137660">"SIM 카드에서 주소록을 가져오려면 비행기 모드를 사용 중지하세요."</string>
     <string name="enable_pin" msgid="5422767284133234860">"SIM PIN 사용/사용 중지"</string>
     <string name="change_pin" msgid="9174186126330785343">"SIM PIN 변경"</string>
     <string name="enter_pin_text" msgid="8532615714751931951">"SIM PIN:"</string>
@@ -469,7 +461,6 @@
     <string name="voicemail_settings_number_label" msgid="8524164258691887790">"음성사서함 번호"</string>
     <string name="card_title_dialing" msgid="5769417478498348054">"전화 거는 중"</string>
     <string name="card_title_redialing" msgid="4831412164303596395">"다시 시도 중"</string>
-    <string name="card_title_in_progress" msgid="8603765629781648862">"현재 통화"</string>
     <string name="card_title_conf_call" msgid="1162980346189744501">"다자간 통화"</string>
     <string name="card_title_incoming_call" msgid="7364539451234646909">"수신전화"</string>
     <string name="card_title_cdma_call_waiting" msgid="4532445524811272644">"Cdma 통화 대기"</string>
@@ -513,10 +504,6 @@
     <string name="dial_emergency_empty_error" msgid="5048645338094088229">"전화를 걸지 못했습니다. 긴급 전화번호로 전화를 걸어 보세요."</string>
     <string name="dialerKeyboardHintText" msgid="9192914825413747792">"키보드를 사용하여 전화걸기"</string>
     <string name="dtmfDialpadHintText" msgid="2153335217920679451">"터치톤 키패드"</string>
-    <string name="dtmfDialpadHandleLabel" msgid="6077872154488117962">"다이얼패드"</string>
-    <string name="touchLockText" msgid="566824588267376287">"잠금해제하려면"\n"두 번 누르세요."</string>
-    <string name="onscreenAnswerText" msgid="3000799558804019765">"전화를 받으려면"\n"두 번 누르기"</string>
-    <string name="onscreenRejectText" msgid="1456649473993020449">"거부하려면"\n"두 번 누르기"</string>
     <string name="onscreenHoldText" msgid="2285258239691145872">"대기"</string>
     <string name="onscreenUnholdText" msgid="5033582269005230794">"대기 해제"</string>
     <string name="onscreenEndCallText" msgid="4403855834875398585">"종료"</string>
@@ -524,12 +511,13 @@
     <string name="onscreenHideDialpadText" msgid="2572388822571686252">"숨기기"</string>
     <string name="onscreenSpeakerText" msgid="9013795366801657948">"스피커"</string>
     <string name="onscreenMuteText" msgid="5011369181754261374">"음소거"</string>
-    <string name="onscreenBluetoothText" msgid="2479639597725504499">"Bluetooth"</string>
+    <string name="onscreenBluetoothText" msgid="2479639597725504499">"블루투스"</string>
     <string name="onscreenAddCallText" msgid="5140385634712287403">"통화 추가"</string>
     <string name="onscreenMergeCallsText" msgid="6640195098064538950">"통화 병합"</string>
     <string name="onscreenSwapCallsText" msgid="1602990689244030047">"전환"</string>
     <string name="onscreenManageCallsText" msgid="5473231160123254154">"통화 관리"</string>
-    <string name="onscreenManageConferenceText" msgid="6952581578445378981">"관리"</string>
+    <string name="onscreenManageConferenceText" msgid="6485935856534311346">"다자간 통화 관리"</string>
+    <string name="onscreenAudioText" msgid="1710087112800041743">"오디오"</string>
     <string name="importSimEntry" msgid="6614358325359736031">"가져오기"</string>
     <string name="importAllSimEntries" msgid="1503181169636198673">"모두 가져오기"</string>
     <string name="importingSimContacts" msgid="7374056215462575769">"SIM 주소록 가져오는 중"</string>
@@ -616,7 +604,7 @@
     <string name="sip_accounts_title" msgid="1212889069281054570">"계정"</string>
     <string name="sip_accounts_summary" msgid="6812629993146552527">"인터넷 전화(SIP) 계정 및 상태 관리"</string>
     <string name="sip_receive_calls" msgid="5635685570889971559">"수신전화 받기"</string>
-    <string name="sip_receive_calls_summary" msgid="8403613238633679184">"배터리 수명 단축"</string>
+    <string name="sip_receive_calls_summary" msgid="8403613238633679184">"배터리가 빨리 방전될 수 있습니다."</string>
     <string name="sip_call_options" msgid="7128315120104066133">"통화 옵션 구성"</string>
     <string name="sip_call_options_title" msgid="27433718808839672">"인터넷 전화 사용"</string>
     <string name="sip_call_options_wifi_only_title" msgid="145572394529090811">"인터넷 통화 사용(Wi-Fi 전용)"</string>
@@ -656,11 +644,11 @@
     <string name="registration_status_not_receiving" msgid="5011399017106466965">"전화를 받지 않음"</string>
     <string name="registration_status_no_data" msgid="8279587001454092132">"인터넷에 연결되어 있지 않기 때문에 계정 등록이 중지되었습니다"</string>
     <string name="registration_status_no_wifi_data" msgid="6698550648571450078">"Wi-Fi에 연결되어 있지 않기 때문에 계정 등록이 중지되었습니다"</string>
-    <string name="registration_status_not_running" msgid="272678962440371182">"계정을 등록하지 못했습니다"</string>
+    <string name="registration_status_not_running" msgid="3826034902272084289">"계정을 등록하지 못했습니다."</string>
     <string name="registration_status_done" msgid="6434927607037752239">"전화 받기"</string>
-    <string name="registration_status_failed_try_later" msgid="3045686593819835879">"계정을 등록하지 못했습니다(<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>). 나중에 다시 시도합니다."</string>
-    <string name="registration_status_invalid_credentials" msgid="1830368411591265203">"계정을 등록하지 못했습니다. 사용자 이름 또는 비밀번호가 잘못되었습니다."</string>
-    <string name="registration_status_server_unreachable" msgid="8173553259218123653">"계정을 등록하지 못했습니다. 서버 이름을 확인하세요."</string>
+    <string name="registration_status_failed_try_later" msgid="5214474354451220581">"계정을 등록하지 못했습니다(<xliff:g id="REGISTRATION_ERROR_MESSAGE">%s</xliff:g>). 나중에 다시 시도합니다."</string>
+    <string name="registration_status_invalid_credentials" msgid="85887803757211092">"계정을 등록하지 못했습니다. 사용자 이름 또는 비밀번호가 잘못되었습니다."</string>
+    <string name="registration_status_server_unreachable" msgid="9138794150602726009">"계정을 등록하지 못했습니다. 서버 이름을 확인하세요."</string>
     <string name="third_party_account_summary" msgid="1069915789382987226">"<xliff:g id="ACCOUNT_OWNER">%s</xliff:g> 애플리케이션에서 이 계정을 현재 사용 중입니다."</string>
     <string name="sip_edit_title" msgid="489288416435014385">"SIP 계정 세부정보"</string>
     <string name="sip_edit_new_title" msgid="3659149255856520385">"SIP 계정 세부정보"</string>
@@ -692,4 +680,37 @@
     <string name="no_internet_available" msgid="1100564991026313234">"인터넷 전화를 걸려면 먼저 인터넷 연결을 확인하세요."</string>
     <string name="no_wifi_available" msgid="3389743006886634541">"인터넷 전화를 사용하려면 Wi-Fi 네트워크에 연결되어 있어야 합니다(\'무선 및 네트워크\' 설정 사용)."</string>
     <string name="no_voip" msgid="8901474054537199865">"인터넷 전화가 지원되지 않습니다."</string>
+    <string name="sip_system_decide" msgid="368030746310423471">"자동"</string>
+    <string name="sip_always_send_keepalive" msgid="8192080724632877132">"항상 보내기"</string>
+    <string name="not_voice_capable" msgid="2739898841461577811">"음성통화 지원되지 않음"</string>
+    <string name="respond_via_sms_canned_response_1" msgid="2461606462788380215">"통화 불가. 용무를 남겨주세요."</string>
+    <string name="respond_via_sms_canned_response_2" msgid="4074450431532859214">"바로 다시 전화드리겠습니다."</string>
+    <string name="respond_via_sms_canned_response_3" msgid="3496079065723960450">"나중에 전화드리겠습니다."</string>
+    <string name="respond_via_sms_canned_response_4" msgid="1698989243040062190">"통화 불가. 나중에 전화주세요."</string>
+    <string name="respond_via_sms_custom_message" msgid="4911568567889429624">"메시지 맞춤설정..."</string>
+    <string name="respond_via_sms_setting_title" msgid="3754000371039709383">"빠른 응답"</string>
+    <string name="respond_via_sms_setting_title_2" msgid="6104662227299493906">"빠른 응답 수정"</string>
+    <string name="respond_via_sms_setting_summary" msgid="9150281183930613065"></string>
+    <string name="respond_via_sms_edittext_dialog_title" msgid="20379890418289778">"빠른 응답"</string>
+    <string name="respond_via_sms_confirmation_format" msgid="7229149977515784269">"<xliff:g id="PHONE_NUMBER">%s</xliff:g>(으)로 메시지를 보냈습니다."</string>
+    <string name="description_image_button_one" msgid="5502718871331943463">"1"</string>
+    <string name="description_image_button_two" msgid="4903738528222924522">"2"</string>
+    <string name="description_image_button_three" msgid="5570985408463782329">"3"</string>
+    <string name="description_image_button_four" msgid="1697520001239289074">"4"</string>
+    <string name="description_image_button_five" msgid="3450276493026943454">"5"</string>
+    <string name="description_image_button_six" msgid="2070376172268675300">"6"</string>
+    <string name="description_image_button_seven" msgid="1757351311199993371">"7"</string>
+    <string name="description_image_button_eight" msgid="4734693919020613227">"8"</string>
+    <string name="description_image_button_nine" msgid="5568534122590597040">"9"</string>
+    <string name="description_image_button_star" msgid="1976280813017254462">"별"</string>
+    <string name="description_image_button_zero" msgid="4211255756866893605">"0"</string>
+    <string name="description_image_button_pound" msgid="1716041284529917866">"파운드"</string>
+    <string name="description_search_button" msgid="239929880630534731">"검색"</string>
+    <string name="description_dial_button" msgid="7459705245418435351">"전화걸기"</string>
+    <string name="description_delete_button" msgid="4015842181592283903">"백스페이스"</string>
+    <string name="accessibility_speakerphone_enabled" msgid="1988512040421036359">"스피커폰이 사용 설정되었습니다."</string>
+    <string name="accessibility_call_muted" msgid="2776111226185342220">"통화가 음소거되었습니다."</string>
+    <string name="description_target_answer" msgid="7205604197797472471">"답변"</string>
+    <string name="description_target_send_sms" msgid="2098326025587950144">"SMS 보내기"</string>
+    <string name="description_target_decline" msgid="4789834364389731957">"거부"</string>
 </resources>
